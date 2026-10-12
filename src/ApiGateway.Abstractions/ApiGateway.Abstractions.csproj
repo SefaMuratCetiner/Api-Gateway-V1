@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Contracts shared by every gateway library: request features, the error contract, telemetry names,
+    audit and metrics ports. No package references on purpose, so backends can adopt the error contract
+    without pulling in the gateway's dependencies.
+  -->
+  <PropertyGroup>
+    <RootNamespace>ApiGateway.Abstractions</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

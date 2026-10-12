@@ -1,0 +1,105 @@
+# Prometheus alerting rules for the API gateway.
+# Metric names are the OpenTelemetry instruments as exposed on the internal listener's /metrics
+# (dots become underscores, counters get _total, seconds histograms get _seconds_bucket).
+groups:
+  - name: api-gateway.availability
+    rules:
+      - alert: GatewayHighServerErrorRate
+        expr: |
+          sum by (gateway_route_id) (rate(gateway_requests_total{http_response_status_class="5xx", gateway_synthetic="false"}[5m]))
+            /
+          clamp_min(sum by (gateway_route_id) (rate(gateway_requests_total{gateway_synthetic="false"}[5m])), 1e-9)
+            > 0.05
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "More than 5% 5xx on route {{ $labels.gateway_route_id }}"
+          runbook: "docs/observability.md#high-5xx-rate"
+
+      - alert: GatewayErrorsByCode
+        expr: sum by (error_code) (rate(gateway_errors_total{error_code=~"gateway.(upstream_unreachable|bad_upstream_response|no_healthy_destination)"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "Gateway is producing {{ $labels.error_code }} errors"
+
+      - alert: GatewayClusterWithoutHealthyDestinations
+        expr: |
+          sum by (gateway_cluster_id) (gateway_cluster_destinations{gateway_health="healthy"}) == 0
+            and
+          sum by (gateway_cluster_id) (gateway_cluster_destinations{gateway_health="unhealthy"}) > 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "Cluster {{ $labels.gateway_cluster_id }} has no healthy destination"
+
+      - alert: GatewayDestinationFlapping
+        expr: sum by (gateway_cluster_id) (increase(gateway_destination_health_changes_total[15m])) > 10
+        labels:
+          severity: ticket
+        annotations:
+          summary: "Destinations of {{ $labels.gateway_cluster_id }} change health state repeatedly"
+
+      - alert: GatewaySyntheticCheckFailing
+        expr: sum by (gateway_probe) (increase(gateway_synthetic_checks_total{outcome!="success"}[10m])) >= 3
+        labels:
+          severity: page
+        annotations:
+          summary: "Synthetic check {{ $labels.gateway_probe }} fails through the public route"
+
+  - name: api-gateway.latency
+    rules:
+      - alert: GatewayHighP99Latency
+        expr: |
+          histogram_quantile(0.99, sum by (le, gateway_route_id) (rate(gateway_request_duration_seconds_bucket[5m]))) > 2
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "p99 latency above 2s on route {{ $labels.gateway_route_id }}"
+
+      - alert: GatewayOverheadHigh
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(gateway_overhead_duration_seconds_bucket[5m]))) > 0.05
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "The gateway itself adds more than 50ms at p95"
+
+  - name: api-gateway.protection
+    rules:
+      - alert: GatewayRejectionSpike
+        expr: sum by (reason) (rate(gateway_rejections_total[5m])) > 10 * sum by (reason) (rate(gateway_rejections_total[1h] offset 1d))
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "Rejections for {{ $labels.reason }} are 10x higher than yesterday"
+
+      - alert: GatewayTokenRejectionSpike
+        expr: sum(rate(gateway_rejections_total{reason="token"}[5m])) > 5
+        for: 5m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "Many requests with invalid tokens (credential stuffing or an IdP problem)"
+
+      - alert: GatewayLoadShedding
+        expr: sum(rate(gateway_rejections_total{reason="shed"}[5m])) > 0
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "The gateway is shedding load"
+
+      - alert: GatewayTailBufferEvicting
+        expr: sum(rate(gateway_tracing_tail_evictions_total[5m])) > 0
+        for: 15m
+        labels:
+          severity: info
+        annotations:
+          summary: "Tail-sampling buffer is full; raise Observability:Tracing:TailBufferMaxTraces"

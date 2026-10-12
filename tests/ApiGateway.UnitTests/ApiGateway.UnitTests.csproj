@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ApiGateway.UnitTests</RootNamespace>
+    <!-- xunit v3 test projects are self-hosting executables. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\ApiGateway.Proxy\ApiGateway.Proxy.csproj" />
+    <ProjectReference Include="..\..\src\ApiGateway.Errors\ApiGateway.Errors.csproj" />
+    <ProjectReference Include="..\..\src\ApiGateway.Observability\ApiGateway.Observability.csproj" />
+    <ProjectReference Include="..\..\src\ApiGateway.Observability.Serilog\ApiGateway.Observability.Serilog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

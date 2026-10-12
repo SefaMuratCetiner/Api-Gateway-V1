@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Gateway-made errors: RFC 9457 problem details in one shape, the status map (401/403/404/405/413/414/431/
+    429/502/503/504), forwarder-error classification and localized messages. No DI registration code: the
+    Host's composition root wires these types.
+  -->
+  <PropertyGroup>
+    <RootNamespace>ApiGateway.Errors</RootNamespace>
+    <!-- ErrorMessages.resx is English; satellite assemblies hold the other cultures. -->
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Yarp.ReverseProxy" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ApiGateway.UnitTests" />
+  </ItemGroup>
+</Project>

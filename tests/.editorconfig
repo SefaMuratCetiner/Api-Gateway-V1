@@ -1,0 +1,7 @@
+# Test-specific analyzer tuning (inherits the root .editorconfig).
+[*.cs]
+# Test names are sentences: Backend_responses_are_never_rewritten.
+dotnet_diagnostic.CA1707.severity = none
+# Assertions compare known ASCII literals; culture/comparer overloads add noise.
+dotnet_diagnostic.MA0002.severity = none
+dotnet_diagnostic.MA0006.severity = none

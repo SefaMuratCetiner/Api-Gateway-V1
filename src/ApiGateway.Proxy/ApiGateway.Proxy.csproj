@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    YARP-specific building blocks: typed per-route policies read from route metadata, route-metadata
+    validation, route context and the upstream-response marker. No DI registration code: the Host's
+    composition root wires these types.
+  -->
+  <PropertyGroup>
+    <RootNamespace>ApiGateway.Proxy</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Yarp.ReverseProxy" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

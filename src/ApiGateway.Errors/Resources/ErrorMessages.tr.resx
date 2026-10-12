@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BadRequest_Title" xml:space="preserve">
+    <value>İstek hatalı biçimlendirilmiş.</value>
+  </data>
+  <data name="BadRequest_Detail" xml:space="preserve">
+    <value>Ağ geçidi, hatalı biçimlendirildiği için isteği işleyemedi.</value>
+  </data>
+  <data name="AuthenticationRequired_Title" xml:space="preserve">
+    <value>Kimlik doğrulaması gerekli.</value>
+  </data>
+  <data name="AuthenticationRequired_Detail" xml:space="preserve">
+    <value>Bu rota bir erişim belirteci veya API anahtarı gerektirir.</value>
+  </data>
+  <data name="InvalidToken_Title" xml:space="preserve">
+    <value>Erişim belirteci geçersiz veya süresi dolmuş.</value>
+  </data>
+  <data name="InvalidToken_Detail" xml:space="preserve">
+    <value>Yeni bir erişim belirteci alın ve isteği tekrarlayın.</value>
+  </data>
+  <data name="Forbidden_Title" xml:space="preserve">
+    <value>Bu rotaya erişim izni yok.</value>
+  </data>
+  <data name="Forbidden_Detail" xml:space="preserve">
+    <value>Kimlik bilgileri geçerli ancak bu rotaya erişim yetkisi vermiyor.</value>
+  </data>
+  <data name="RouteNotFound_Title" xml:space="preserve">
+    <value>İstekle eşleşen bir rota yok.</value>
+  </data>
+  <data name="RouteNotFound_Detail" xml:space="preserve">
+    <value>URL'yi ve yoldaki API sürümünü kontrol edin.</value>
+  </data>
+  <data name="MethodNotAllowed_Title" xml:space="preserve">
+    <value>Bu rotada bu yönteme izin verilmiyor.</value>
+  </data>
+  <data name="MethodNotAllowed_Detail" xml:space="preserve">
+    <value>Bu rotanın kabul ettiği yöntemler için Allow başlığına bakın.</value>
+  </data>
+  <data name="PayloadTooLarge_Title" xml:space="preserve">
+    <value>İstek gövdesi çok büyük.</value>
+  </data>
+  <data name="PayloadTooLarge_Detail" xml:space="preserve">
+    <value>İstek gövdesi bu rotanın boyut sınırını aşıyor.</value>
+  </data>
+  <data name="UriTooLong_Title" xml:space="preserve">
+    <value>İstek URL'si çok uzun.</value>
+  </data>
+  <data name="UriTooLong_Detail" xml:space="preserve">
+    <value>URL'yi kısaltın veya verileri istek gövdesinde gönderin.</value>
+  </data>
+  <data name="HeadersTooLarge_Title" xml:space="preserve">
+    <value>İstek başlıkları çok büyük.</value>
+  </data>
+  <data name="HeadersTooLarge_Detail" xml:space="preserve">
+    <value>İstek başlıklarının sayısını veya boyutunu azaltın.</value>
+  </data>
+  <data name="RateLimited_Title" xml:space="preserve">
+    <value>Çok fazla istek.</value>
+  </data>
+  <data name="RateLimited_Detail" xml:space="preserve">
+    <value>Bu istemcinin hız sınırı aşıldı. Retry-After başlığında belirtilen süreden sonra tekrar deneyin.</value>
+  </data>
+  <data name="QuotaExceeded_Title" xml:space="preserve">
+    <value>İstek kotası doldu.</value>
+  </data>
+  <data name="QuotaExceeded_Detail" xml:space="preserve">
+    <value>Geçerli dönemin kotası doldu. Retry-After başlığında belirtilen süreden sonra tekrar deneyin.</value>
+  </data>
+  <data name="InternalError_Title" xml:space="preserve">
+    <value>Ağ geçidinde beklenmeyen bir hata oluştu.</value>
+  </data>
+  <data name="InternalError_Detail" xml:space="preserve">
+    <value>Hata kaydedildi. Destek ile iletişime geçerken traceId değerini belirtin.</value>
+  </data>
+  <data name="BadUpstreamResponse_Title" xml:space="preserve">
+    <value>Arka uç hizmeti geçersiz bir yanıt döndürdü.</value>
+  </data>
+  <data name="BadUpstreamResponse_Detail" xml:space="preserve">
+    <value>Ağ geçidi, bu rotanın arkasındaki hizmetten geçersiz bir yanıt aldı.</value>
+  </data>
+  <data name="UpstreamUnreachable_Title" xml:space="preserve">
+    <value>Arka uç hizmetine ulaşılamadı.</value>
+  </data>
+  <data name="UpstreamUnreachable_Detail" xml:space="preserve">
+    <value>Ağ geçidi, bu rotanın arkasındaki hizmete bağlanamadı.</value>
+  </data>
+  <data name="NoHealthyDestination_Title" xml:space="preserve">
+    <value>Hizmet geçici olarak kullanılamıyor.</value>
+  </data>
+  <data name="NoHealthyDestination_Detail" xml:space="preserve">
+    <value>Bu rotanın arkasındaki hizmetin sağlıklı bir örneği yok. Retry-After başlığında belirtilen süreden sonra tekrar deneyin.</value>
+  </data>
+  <data name="Overloaded_Title" xml:space="preserve">
+    <value>Ağ geçidi aşırı yüklü.</value>
+  </data>
+  <data name="Overloaded_Detail" xml:space="preserve">
+    <value>Hizmeti korumak için istek reddedildi. Retry-After başlığında belirtilen süreden sonra tekrar deneyin.</value>
+  </data>
+  <data name="Maintenance_Title" xml:space="preserve">
+    <value>Hizmet bakımda.</value>
+  </data>
+  <data name="Maintenance_Detail" xml:space="preserve">
+    <value>Retry-After başlığında belirtilen süreden sonra tekrar deneyin.</value>
+  </data>
+  <data name="RouteDisabled_Title" xml:space="preserve">
+    <value>Bu rota geçici olarak devre dışı.</value>
+  </data>
+  <data name="RouteDisabled_Detail" xml:space="preserve">
+    <value>Rota bir operatör tarafından kapatıldı. Daha sonra tekrar deneyin.</value>
+  </data>
+  <data name="UpstreamTimeout_Title" xml:space="preserve">
+    <value>Arka uç hizmeti zamanında yanıt vermedi.</value>
+  </data>
+  <data name="UpstreamTimeout_Detail" xml:space="preserve">
+    <value>Bu rotanın arkasındaki hizmet zaman sınırı içinde yanıt vermedi.</value>
+  </data>
+  <data name="RouteTimeout_Title" xml:space="preserve">
+    <value>İstek zamanında tamamlanmadı.</value>
+  </data>
+  <data name="RouteTimeout_Detail" xml:space="preserve">
+    <value>İstek bu rotanın zaman sınırını aştı.</value>
+  </data>
+</root>

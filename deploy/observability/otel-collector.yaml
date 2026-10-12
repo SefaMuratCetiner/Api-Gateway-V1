@@ -1,0 +1,83 @@
+# OpenTelemetry Collector for the API gateway.
+#
+# The gateway exports traces, metrics and logs over OTLP (Observability:Export:OtlpEndpoint).
+# It already keeps errors and slow requests of its own spans (local tail sampling); this collector applies
+# tail sampling across the whole trace, gateway and backend spans together, which a single process cannot.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 20
+
+  # Defence in depth: drop credentials that should never have been recorded.
+  attributes/scrub:
+    actions:
+      - key: http.request.header.authorization
+        action: delete
+      - key: http.request.header.cookie
+        action: delete
+      - key: url.query
+        action: delete
+
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 100000
+    expected_new_traces_per_sec: 2000
+    policies:
+      - name: errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: slow
+        type: latency
+        latency:
+          threshold_ms: 2000
+      - name: gateway-errors
+        type: string_attribute
+        string_attribute:
+          key: error.code
+          values: ["gateway\\..*"]
+          enabled_regex_matching: true
+      - name: baseline
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+  batch:
+    send_batch_size: 1024
+    timeout: 5s
+
+exporters:
+  otlphttp/traces:
+    endpoint: http://tempo:4318
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    resource_to_telemetry_conversion:
+      enabled: true
+  otlphttp/logs:
+    # Log retention is enforced by the log store; the gateway reports its configured retention as the
+    # resource attribute gateway.log.retention_days so the store can apply matching policies.
+    endpoint: http://loki:3100/otlp
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes/scrub, tail_sampling, batch]
+      exporters: [otlphttp/traces]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheusremotewrite]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/logs]

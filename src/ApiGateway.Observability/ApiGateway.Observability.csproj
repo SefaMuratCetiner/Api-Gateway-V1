@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Provider-neutral observability: correlation, trace trust and sampling, metrics with cardinality limits,
+    redaction rules, client-IP anonymization, body capture, audit, usage analytics and synthetic checks.
+    Logs go through Microsoft.Extensions.Logging; the logging provider (Serilog) is chosen by the Host.
+    No DI registration code: the Host's composition root wires these types.
+  -->
+  <PropertyGroup>
+    <RootNamespace>ApiGateway.Observability</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="Yarp.ReverseProxy" />
+    <PackageReference Include="Yarp.Telemetry.Consumption" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
+    <ProjectReference Include="..\ApiGateway.Proxy\ApiGateway.Proxy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ApiGateway.UnitTests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!--
+    The deployable gateway. Contains the composition root (CompositionRoot/): the only place that knows
+    concrete types, binds and validates options, builds Serilog and OpenTelemetry, orders the middleware
+    pipeline and maps endpoints. Everything else lives in the libraries.
+  -->
+  <PropertyGroup>
+    <RootNamespace>ApiGateway.Host</RootNamespace>
+    <AssemblyName>ApiGateway.Host</AssemblyName>
+    <UserSecretsId>apigateway-host</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Yarp.ReverseProxy" />
+    <PackageReference Include="Yarp.Telemetry.Consumption" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
+    <ProjectReference Include="..\ApiGateway.Proxy\ApiGateway.Proxy.csproj" />
+    <ProjectReference Include="..\ApiGateway.Errors\ApiGateway.Errors.csproj" />
+    <ProjectReference Include="..\ApiGateway.Observability\ApiGateway.Observability.csproj" />
+    <ProjectReference Include="..\ApiGateway.Observability.Serilog\ApiGateway.Observability.Serilog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ApiGateway.IntegrationTests" />
+  </ItemGroup>
+</Project>

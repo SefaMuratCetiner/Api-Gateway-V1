@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Serilog adapters for the gateway's observability: the access log (request logging enrichment), the
+    last-chance redaction sink, and the logger configuration (sinks, retention, audit/usage sub-loggers).
+    The only project that references Serilog; every other library logs through Microsoft.Extensions.Logging.
+  -->
+  <PropertyGroup>
+    <RootNamespace>ApiGateway.Observability.Serilog</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Expressions" />
+    <PackageReference Include="Serilog.Formatting.Compact" />
+    <PackageReference Include="Serilog.Sinks.Async" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
+    <ProjectReference Include="..\ApiGateway.Observability\ApiGateway.Observability.csproj" />
+    <ProjectReference Include="..\ApiGateway.Proxy\ApiGateway.Proxy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ApiGateway.UnitTests" />
+  </ItemGroup>
+</Project>

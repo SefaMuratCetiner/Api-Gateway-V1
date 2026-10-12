@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BadRequest_Title" xml:space="preserve">
+    <value>The request is malformed.</value>
+  </data>
+  <data name="BadRequest_Detail" xml:space="preserve">
+    <value>The gateway could not process the request because it is malformed.</value>
+  </data>
+  <data name="AuthenticationRequired_Title" xml:space="preserve">
+    <value>Authentication is required.</value>
+  </data>
+  <data name="AuthenticationRequired_Detail" xml:space="preserve">
+    <value>This route requires an access token or API key.</value>
+  </data>
+  <data name="InvalidToken_Title" xml:space="preserve">
+    <value>The access token is invalid or expired.</value>
+  </data>
+  <data name="InvalidToken_Detail" xml:space="preserve">
+    <value>Obtain a new access token and retry the request.</value>
+  </data>
+  <data name="Forbidden_Title" xml:space="preserve">
+    <value>Access to this route is not allowed.</value>
+  </data>
+  <data name="Forbidden_Detail" xml:space="preserve">
+    <value>The credentials are valid but do not grant access to this route.</value>
+  </data>
+  <data name="RouteNotFound_Title" xml:space="preserve">
+    <value>No route matches the request.</value>
+  </data>
+  <data name="RouteNotFound_Detail" xml:space="preserve">
+    <value>Check the URL and the API version in the path.</value>
+  </data>
+  <data name="MethodNotAllowed_Title" xml:space="preserve">
+    <value>The method is not allowed on this route.</value>
+  </data>
+  <data name="MethodNotAllowed_Detail" xml:space="preserve">
+    <value>See the Allow header for the methods this route accepts.</value>
+  </data>
+  <data name="PayloadTooLarge_Title" xml:space="preserve">
+    <value>The request body is too large.</value>
+  </data>
+  <data name="PayloadTooLarge_Detail" xml:space="preserve">
+    <value>The request body exceeds the size limit of this route.</value>
+  </data>
+  <data name="UriTooLong_Title" xml:space="preserve">
+    <value>The request URL is too long.</value>
+  </data>
+  <data name="UriTooLong_Detail" xml:space="preserve">
+    <value>Shorten the URL or send the data in the request body.</value>
+  </data>
+  <data name="HeadersTooLarge_Title" xml:space="preserve">
+    <value>The request headers are too large.</value>
+  </data>
+  <data name="HeadersTooLarge_Detail" xml:space="preserve">
+    <value>Reduce the number or size of the request headers.</value>
+  </data>
+  <data name="RateLimited_Title" xml:space="preserve">
+    <value>Too many requests.</value>
+  </data>
+  <data name="RateLimited_Detail" xml:space="preserve">
+    <value>The rate limit for this client was exceeded. Retry after the time given in the Retry-After header.</value>
+  </data>
+  <data name="QuotaExceeded_Title" xml:space="preserve">
+    <value>The request quota is used up.</value>
+  </data>
+  <data name="QuotaExceeded_Detail" xml:space="preserve">
+    <value>The quota for the current period is used up. Retry after the time given in the Retry-After header.</value>
+  </data>
+  <data name="InternalError_Title" xml:space="preserve">
+    <value>An unexpected error occurred in the gateway.</value>
+  </data>
+  <data name="InternalError_Detail" xml:space="preserve">
+    <value>The error was logged. Quote the traceId when you contact support.</value>
+  </data>
+  <data name="BadUpstreamResponse_Title" xml:space="preserve">
+    <value>The upstream service returned an invalid response.</value>
+  </data>
+  <data name="BadUpstreamResponse_Detail" xml:space="preserve">
+    <value>The gateway received an invalid response from the service behind this route.</value>
+  </data>
+  <data name="UpstreamUnreachable_Title" xml:space="preserve">
+    <value>The upstream service could not be reached.</value>
+  </data>
+  <data name="UpstreamUnreachable_Detail" xml:space="preserve">
+    <value>The gateway could not connect to the service behind this route.</value>
+  </data>
+  <data name="NoHealthyDestination_Title" xml:space="preserve">
+    <value>The service is temporarily unavailable.</value>
+  </data>
+  <data name="NoHealthyDestination_Detail" xml:space="preserve">
+    <value>No healthy instance of the service behind this route is available. Retry after the time given in the Retry-After header.</value>
+  </data>
+  <data name="Overloaded_Title" xml:space="preserve">
+    <value>The gateway is overloaded.</value>
+  </data>
+  <data name="Overloaded_Detail" xml:space="preserve">
+    <value>The request was rejected to protect the service. Retry after the time given in the Retry-After header.</value>
+  </data>
+  <data name="Maintenance_Title" xml:space="preserve">
+    <value>The service is under maintenance.</value>
+  </data>
+  <data name="Maintenance_Detail" xml:space="preserve">
+    <value>Retry after the time given in the Retry-After header.</value>
+  </data>
+  <data name="RouteDisabled_Title" xml:space="preserve">
+    <value>This route is temporarily disabled.</value>
+  </data>
+  <data name="RouteDisabled_Detail" xml:space="preserve">
+    <value>The route was switched off by an operator. Retry later.</value>
+  </data>
+  <data name="UpstreamTimeout_Title" xml:space="preserve">
+    <value>The upstream service did not answer in time.</value>
+  </data>
+  <data name="UpstreamTimeout_Detail" xml:space="preserve">
+    <value>The service behind this route did not respond within the time limit.</value>
+  </data>
+  <data name="RouteTimeout_Title" xml:space="preserve">
+    <value>The request did not complete in time.</value>
+  </data>
+  <data name="RouteTimeout_Detail" xml:space="preserve">
+    <value>The request exceeded the time limit of this route.</value>
+  </data>
+</root>
