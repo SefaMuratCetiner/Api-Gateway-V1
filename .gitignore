@@ -1,7 +1,98 @@
-bin/
-obj/
-*.user
+# =============================================================================
+# API Gateway .gitignore
+# Order: build output → tooling → secrets → runtime output → OS noise.
+# Deliberately NOT ignored: packages.lock.json (reproducible restores),
+# appsettings.{,Development,Production}.json (no secrets in them by design),
+# launchSettings.json, .editorconfig, global.json.
+# =============================================================================
+
+# --- Build output ------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Pp]ublish/
+artifacts/
+*.nupkg
+*.snupkg
+*.binlog
+msbuild.log
+*.tlog
+project.assets.json
+project.nuget.cache
+*.nuget.dgspec.json
+*.nuget.g.props
+*.nuget.g.targets
+
+# Local NuGet package folders (never commit restored packages)
+packages/
+.nuget/
+!**/packages.lock.json
+
+# --- IDEs and editors ----------------------------------------------------------
 .vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
+*.sln.iml
+*.user
+*.userosscache
+*.suo
+*.swp
+*~
+.fleet/
+*.DotSettings.user
+
+# --- Tests and coverage ------------------------------------------------------
 TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+coverage/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+.coverlet/
+
+# --- Secrets and credentials (never commit) ----------------------------------
+# Real secrets come from the secret store / environment, never from files in the repo.
+.env
+.env.*
+!.env.example
+secrets.json
+*.secrets.json
+appsettings.*.local.json
+appsettings.Local.json
+appsettings.Secrets.json
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+*.jks
+*.keystore
+*.snk
+id_rsa*
+id_ed25519*
+*.kubeconfig
+kubeconfig
+
+# --- Runtime output ------------------------------------------------------------
+# Serilog file sinks (gateway, audit, usage) write here by default.
 logs/
+*.log
+# Data Protection / dev certificates generated at runtime
+*.dpkeys/
+.aspnet/
+https/
+
+# --- OS noise ----------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
