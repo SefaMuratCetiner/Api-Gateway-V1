@@ -7,7 +7,7 @@
 | `ApiGateway.Abstractions` | Request features (`IGatewayRequestFeature`, `IUpstreamTimingFeature`, `ICorrelationIdFeature`, …), per-route policy contracts (`IRouteMetadataParser`, `IRoutePolicyResolver`), `IListenerClassifier`, telemetry names, `IGatewayMetrics`, `IAuditLog` |
 | `ApiGateway.Observability` | Provider-neutral: correlation, trace trust and sampling, metrics, redaction rules, IP anonymization, body logging, audit, usage, synthetic checks |
 | `ApiGateway.Observability.Serilog` | Access log enrichment, redacting sink, logger configuration (sinks, retention, audit/usage sub-loggers) |
-| `ApiGateway.Host/CompositionRoot` | Wires everything: options, Serilog, OpenTelemetry, middleware order, endpoints |
+| `ApiGateway.Host` | Wires everything: settings (`GatewaySettings`), one feature module per capability (`Features/`), middleware order and endpoints (`CompositionRoot/`); see [architecture.md](architecture.md) |
 
 Libraries log through `ILogger<T>`; only the Serilog adapter references Serilog. No library registers itself.
 

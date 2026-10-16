@@ -13,7 +13,7 @@ are listed in [errors.md](errors.md).
 | 4 | `RequestHeaderStrippingMiddleware` | Removes `Headers:StrippedRequestHeaders` (client `X-Forwarded-*`, `Forwarded`, `X-Real-IP`, `X-Tenant-Id`, `X-User-Id`, `X-Internal-*`) |
 | 4 | `RequestNormalizationMiddleware` | Rejects bad request targets; canonicalizes the path (rewrite or 308) |
 | 5 | Routing, listener guard, CORS, timeouts, authorization | CORS preflights are answered here |
-| Proxy | `RouteContext` → `ApiLifecycle` → `RequestBodyLimit` → `RequestValidation` → body capture → forwarder errors → `TenantRouting` → affinity, load balancing, passive health | |
+| Proxy | `RouteContext` → `ApiLifecycle` → `RequestBodyLimit` → `RequestValidation` → body logging → forwarder errors → `TenantRouting` → affinity, load balancing, passive health | |
 | Transforms | marker, response header stripping, upstream CORS header removal, path rewrite (`X-Forwarded-Prefix`, `Location`, `Set-Cookie`, redirect check), response limits | YARP sets `X-Forwarded-For/Proto/Host/Prefix` itself (action `Set`) and handles hop-by-hop headers |
 
 ## Routing conventions (`Routing`)

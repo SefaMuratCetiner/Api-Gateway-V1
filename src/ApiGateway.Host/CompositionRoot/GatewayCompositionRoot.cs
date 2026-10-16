@@ -1,86 +1,98 @@
-using ApiGateway.Errors;
-using ApiGateway.Observability;
-using ApiGateway.Observability.Serilog;
-using ApiGateway.Proxy.Aggregation;
-using ApiGateway.Proxy.Compression;
+using ApiGateway.Host.Features;
+using ApiGateway.Proxy.Cors;
+using ApiGateway.Proxy.Headers;
 using ApiGateway.Proxy.Limits;
-using ApiGateway.Proxy.Listeners;
 using ApiGateway.Proxy.Routing;
+using ApiGateway.Proxy.Transforms;
 
 namespace ApiGateway.Host.CompositionRoot;
 
 /// <summary>
 /// The gateway's composition root: the one place where object graphs are composed. Libraries expose
-/// constructor-injected types and never register themselves; this class decides which implementations are used,
-/// how they are configured, in which order middleware runs and which endpoints exist on which listener.
-/// Split into partial files by concern:
+/// constructor-injected types and never register themselves. The work is split three ways:
 /// <list type="bullet">
-/// <item><c>.Options</c>: bind and validate every options class (eagerly too, where composition needs values).</item>
-/// <item><c>.Logging</c>: Serilog.</item>
-/// <item><c>.Telemetry</c>: OpenTelemetry tracing and metrics.</item>
-/// <item><c>.Observability</c>: correlation, metrics, redaction, audit, usage, synthetic checks.</item>
-/// <item><c>.Errors</c>: problem details and error mapping.</item>
-/// <item><c>.Proxy</c>: YARP and its extension points (routing conventions, rewriting, limits, per-route policies), Kestrel.</item>
-/// <item><c>.RequestHandling</c>: CORS, compression, contract validation, request aggregation.</item>
-/// <item><c>.Pipeline</c>: the middleware order.</item>
-/// <item><c>.Endpoints</c>: public and internal endpoints.</item>
+/// <item><see cref="GatewaySettings"/>: every configuration section, bound, validated and registered once.</item>
+/// <item><c>Features/</c>: one <see cref="IGatewayFeature"/> per capability, holding its service registrations.</item>
+/// <item>This class: everything whose order matters, readable top to bottom. <see cref="Features"/> (registration
+/// order) and YARP's config filters and transforms here; the middleware order in <c>.Pipeline</c>; the proxy
+/// pipeline and the endpoints on each listener in <c>.Endpoints</c>.</item>
 /// </list>
 /// </summary>
 public sealed partial class GatewayCompositionRoot
 {
+    public const string ReverseProxySection = "ReverseProxy";
+
     private readonly WebApplicationBuilder _builder;
 
     public GatewayCompositionRoot(WebApplicationBuilder builder)
     {
         _builder = builder;
-
-        // Values the composition itself depends on (ports, exporters, sampler, sinks). Bound and validated now,
-        // with the same validators the options pipeline uses later, so bad configuration fails before anything starts.
-        Listeners = BindEagerly(ListenerOptions.SectionName, new ListenerOptions(), new ListenerOptionsValidator(), new ListenerOptionsConsistencyValidator());
-        Errors = BindEagerly(ErrorsOptions.SectionName, new ErrorsOptions(), new ErrorsOptionsValidator(), new ErrorsOptionsConsistencyValidator());
-        Observability = BindEagerly(ObservabilityOptions.SectionName, new ObservabilityOptions(), new ObservabilityOptionsValidator(), new ObservabilityOptionsConsistencyValidator());
-        Logging = BindEagerly(LoggingOptions.SectionName, new LoggingOptions(), new LoggingOptionsValidator());
-        Routing = BindEagerly(RoutingOptions.SectionName, new RoutingOptions(), new RoutingOptionsValidator(), new RoutingOptionsConsistencyValidator(AllowWildcardHosts));
-        Limits = BindEagerly(RequestLimitsOptions.SectionName, new RequestLimitsOptions(), new RequestLimitsOptionsValidator());
-        Compression = BindEagerly(CompressionOptions.SectionName, new CompressionOptions());
-        Aggregation = BindEagerly(AggregationOptions.SectionName, new AggregationOptions(), new AggregationOptionsConsistencyValidator(Routing.PublicPathPrefix, AllowWildcardHosts));
+        Settings = new GatewaySettings(builder.Services, builder.Configuration, builder.Environment);
     }
+
+    /// <summary>
+    /// Every feature, in registration order. Order matters only where a feature decorates a service another one
+    /// registers; independent features are grouped by concern.
+    /// </summary>
+    internal static IReadOnlyList<IGatewayFeature> Features { get; } =
+    [
+        // Hosting
+        new ListenersFeature(),
+        new LimitsFeature(),
+
+        // Observability
+        new RedactionFeature(),
+        new LoggingFeature(),
+        new TraceTrustFeature(),
+        new TelemetryFeature(),
+        new MetricsFeature(),
+        new BodyLoggingFeature(),
+        new AuditFeature(),
+        new UsageFeature(),
+        new SyntheticChecksFeature(),
+
+        // Errors, authorization, timeouts
+        new ErrorsFeature(),
+        new AuthorizationFeature(),
+        new RequestTimeoutsFeature(),
+
+        // Proxy
+        new ServiceDiscoveryFeature(),
+        new LoadBalancingFeature(),
+        new TenancyFeature(),
+        new ApiLifecycleFeature(),
+        new CorsFeature(),
+        new CompressionFeature(),
+        new ContractValidationFeature(),
+        new AggregationFeature(),
+    ];
+
+    internal GatewaySettings Settings { get; }
 
     private IServiceCollection Services => _builder.Services;
 
-    private ConfigurationManager Configuration => _builder.Configuration;
-
-    private IWebHostEnvironment Environment => _builder.Environment;
-
-    private ListenerOptions Listeners { get; }
-
-    private ErrorsOptions Errors { get; }
-
-    private ObservabilityOptions Observability { get; }
-
-    private LoggingOptions Logging { get; }
-
-    private RoutingOptions Routing { get; }
-
-    private RequestLimitsOptions Limits { get; }
-
-    private CompressionOptions Compression { get; }
-
-    private AggregationOptions Aggregation { get; }
-
-    /// <summary>Routes without hosts, wildcard hosts and <c>*</c> in <c>Routing:AllowedHosts</c>: Development only.</summary>
-    private bool AllowWildcardHosts => Environment.IsDevelopment();
-
-    /// <summary>Registers every service. Order inside follows dependencies: options, logging, libraries, hosting.</summary>
+    /// <summary>Registers every service: shared infrastructure, YARP, then each feature in order.</summary>
     public void ComposeServices()
     {
-        ComposeOptions();
-        ComposeKestrel();
-        ComposeLogging();
-        ComposeObservability();
-        ComposeTelemetry();
-        ComposeErrors();
-        ComposeProxy();
-        ComposeRequestHandling();
+        Services.AddSingleton(TimeProvider.System);
+        Services.AddHttpContextAccessor();
+
+        // Config filters run in order: conventions (hosts, methods, prefix, destination metadata), then route metadata.
+        // Response transforms run in registration order: the upstream marker first, so later ones can undo it.
+        var proxy = Services.AddReverseProxy()
+            .LoadFromConfig(_builder.Configuration.GetSection(ReverseProxySection))
+            .AddConfigFilter<ProxyConventionsFilter>()
+            .AddConfigFilter<RouteMetadataValidationFilter>()
+            .AddTransforms<UpstreamResponseMarkerTransformProvider>()
+            .AddTransforms<ResponseHeaderStrippingTransformProvider>()
+            .AddTransforms<UpstreamCorsHeaderTransformProvider>()
+            .AddTransforms<PathRewriteTransformProvider>()
+            .AddTransforms<ResponseLimitsTransformProvider>();
+
+        var gateway = new GatewayBuilder(_builder, Settings, proxy);
+        foreach (var feature in Features)
+        {
+            feature.Register(gateway);
+        }
     }
 }

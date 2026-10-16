@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <!--
-    The deployable gateway. Contains the composition root (CompositionRoot/): the only place that knows
-    concrete types, binds and validates options, builds Serilog and OpenTelemetry, orders the middleware
-    pipeline and maps endpoints. Everything else lives in the libraries.
+    The deployable gateway: the only place that knows concrete types. CompositionRoot/ binds and validates every
+    configuration section (GatewaySettings), orders the middleware, the proxy pipeline and YARP's filters and
+    transforms, and maps endpoints; Features/ holds one feature module per capability with its service
+    registrations. Everything else lives in the libraries. See docs/architecture.md.
   -->
   <PropertyGroup>
     <RootNamespace>ApiGateway.Host</RootNamespace>

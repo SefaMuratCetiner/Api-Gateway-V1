@@ -1,5 +1,6 @@
 using System.Diagnostics.Metrics;
 using ApiGateway.Abstractions.Telemetry;
+using ApiGateway.Host.CompositionRoot;
 using ApiGateway.Observability.Export;
 using ApiGateway.Observability.Metrics;
 using ApiGateway.Observability.Tracing;
@@ -11,41 +12,46 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace ApiGateway.Host.CompositionRoot;
+namespace ApiGateway.Host.Features;
 
-public sealed partial class GatewayCompositionRoot
+/// <summary>OpenTelemetry: resource, head and tail sampling, instrumentation, metric views and exporters.</summary>
+internal sealed class TelemetryFeature : IGatewayFeature
 {
     /// <summary>YARP's activity source (forwarder spans).</summary>
     private const string YarpActivitySource = "Yarp.ReverseProxy";
 
-    private void ComposeTelemetry()
+    public void Register(GatewayBuilder gateway)
     {
         // The AspNetCore instrumentation re-extracts the inbound context unless the default propagator is plain
         // W3C trace context; with it, the trust decision made by TrustAwareContextPropagator stands.
         Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
 
-        var export = Observability.Export;
-        Services.AddOpenTelemetry()
+        var settings = gateway.Settings;
+        var observability = settings.Observability;
+        gateway.Services.AddSingleton<TailSamplingMetrics>();
+        gateway.Services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
                 .AddService(
-                    serviceName: Observability.ServiceName,
-                    serviceNamespace: Observability.ServiceNamespace,
-                    serviceVersion: typeof(GatewayCompositionRoot).Assembly.GetName().Version?.ToString(),
-                    serviceInstanceId: System.Environment.MachineName)
+                    serviceName: observability.ServiceName,
+                    serviceNamespace: observability.ServiceNamespace,
+                    serviceVersion: typeof(TelemetryFeature).Assembly.GetName().Version?.ToString(),
+                    serviceInstanceId: Environment.MachineName)
                 .AddAttributes(
                 [
-                    new("deployment.environment.name", Environment.EnvironmentName),
-                    new("gateway.log.retention_days", Logging.File.RetainedDays),
+                    new("deployment.environment.name", gateway.Environment.EnvironmentName),
+                    new("gateway.log.retention_days", settings.Logging.File.RetainedDays),
                 ]))
-            .WithTracing(tracing => ComposeTracing(tracing, export))
-            .WithMetrics(metrics => ComposeMetrics(metrics, export));
+            .WithTracing(tracing => ComposeTracing(tracing, settings))
+            .WithMetrics(metrics => ComposeMetrics(metrics, observability.Metrics, observability.Export));
     }
 
-    private void ComposeTracing(TracerProviderBuilder tracing, ExportOptions export)
+    private static void ComposeTracing(TracerProviderBuilder tracing, GatewaySettings settings)
     {
-        var listeners = Listeners;
+        var listeners = settings.Listeners;
+        var tracingOptions = settings.Observability.Tracing;
+        var export = settings.Observability.Export;
         tracing
-            .SetSampler(new GatewaySampler(Observability.Tracing.SamplingRatio))
+            .SetSampler(new GatewaySampler(tracingOptions.SamplingRatio))
             .AddSource(GatewayTelemetry.Name, GatewayTelemetry.Wildcard, YarpActivitySource)
             .AddAspNetCoreInstrumentation(options =>
             {
@@ -60,7 +66,6 @@ public sealed partial class GatewayCompositionRoot
             return;
         }
 
-        var tracingOptions = Observability.Tracing;
         tracing.AddProcessor(services =>
         {
             var exporter = new OtlpTraceExporter(new OtlpExporterOptions
@@ -78,9 +83,8 @@ public sealed partial class GatewayCompositionRoot
         });
     }
 
-    private void ComposeMetrics(MeterProviderBuilder metrics, ExportOptions export)
+    private static void ComposeMetrics(MeterProviderBuilder metrics, MetricsOptions options, ExportOptions export)
     {
-        var options = Observability.Metrics;
         metrics
             .AddMeter(GatewayTelemetry.Name, GatewayTelemetry.Wildcard)
             .AddAspNetCoreInstrumentation()

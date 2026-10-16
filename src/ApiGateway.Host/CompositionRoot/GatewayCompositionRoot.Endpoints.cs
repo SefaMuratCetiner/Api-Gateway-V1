@@ -24,8 +24,8 @@ public sealed partial class GatewayCompositionRoot
     /// </summary>
     public void ComposeEndpoints(WebApplication app)
     {
-        var publicHosts = Listeners.PublicHostPatterns();
-        var internalHost = Listeners.InternalHostPattern();
+        var publicHosts = Settings.Listeners.PublicHostPatterns();
+        var internalHost = Settings.Listeners.InternalHostPattern();
 
         // The proxy pipeline, in order. YARP's own stages (affinity, load balancing, passive health) come last.
         app.MapReverseProxy(proxy =>
@@ -53,7 +53,7 @@ public sealed partial class GatewayCompositionRoot
         ComposeAggregateEndpoints(app, publicHosts);
 
         // Documentation endpoints: internal listener; also public in Development.
-        string[] docsHosts = AllowWildcardHosts ? [internalHost, .. publicHosts] : [internalHost];
+        string[] docsHosts = Settings.AllowWildcardHosts ? [internalHost, .. publicHosts] : [internalHost];
         app.MapGet(ErrorCatalogEndpoint.Pattern, ErrorCatalogEndpoint.Handle)
             .RequireHost(docsHosts)
             .ExcludeFromDescription();
@@ -64,7 +64,7 @@ public sealed partial class GatewayCompositionRoot
         };
         app.MapHealthChecks(SyntheticHealthPath, syntheticHealth).RequireHost(internalHost);
 
-        if (Observability.Export.PrometheusEnabled)
+        if (Settings.Observability.Export.PrometheusEnabled)
         {
             app.MapPrometheusScrapingEndpoint(MetricsPath).RequireHost(internalHost);
         }
@@ -73,7 +73,7 @@ public sealed partial class GatewayCompositionRoot
     private void ComposeAggregateEndpoints(WebApplication app, string[] publicHosts)
     {
         var handler = app.Services.GetRequiredService<AggregateRequestHandler>();
-        foreach (var (id, route) in Aggregation.Routes)
+        foreach (var (id, route) in Settings.Aggregation.Routes)
         {
             app.MapMethods(route.Path, route.Methods, context => handler.HandleAsync(context, id, route))
                 .RequireHost(route.Hosts.Length > 0 ? route.Hosts : publicHosts)

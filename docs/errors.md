@@ -79,5 +79,5 @@ The live catalog, localized, is served at `GET /internal/errors` on the internal
 ## Adding codes
 
 Define a `GatewayError` (`GatewayErrors.Create("my_code", status)`), contribute it through an
-`IErrorCatalogContributor` registered in the composition root, and add `MyCode_Title` / `MyCode_Detail` to every
+`IErrorCatalogContributor` registered in the library's feature (`src/ApiGateway.Host/Features/`), and add `MyCode_Title` / `MyCode_Detail` to every
 `ErrorMessages.*.resx`. Startup fails if a code is malformed, duplicated, or missing a translation.

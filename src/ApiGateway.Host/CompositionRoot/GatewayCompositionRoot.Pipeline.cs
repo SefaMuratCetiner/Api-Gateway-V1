@@ -37,7 +37,7 @@ public sealed partial class GatewayCompositionRoot
             options.IncludeQueryInRequestPath = false;
         });
         app.UseMiddleware<RequestMetricsMiddleware>();
-        if (Compression.Enabled)
+        if (Settings.Compression.Enabled)
         {
             app.UseResponseCompression();
         }
