@@ -15,7 +15,7 @@ public sealed partial class GatewayCompositionRoot
 
     private void ComposeErrors()
     {
-        // Catalogue (validated at construction and against the resources at startup) and localization.
+        // Catalog (validated at construction and against the resources at startup) and localization.
         Services.AddSingleton<IErrorCatalogContributor, BuiltInErrorCatalogContributor>();
         Services.AddSingleton<IGatewayErrorCatalog, GatewayErrorCatalog>();
         Services.AddSingleton<IErrorMessageLocalizer, ResxErrorMessageLocalizer>();

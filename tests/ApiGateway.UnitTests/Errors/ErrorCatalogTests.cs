@@ -8,7 +8,7 @@ namespace ApiGateway.UnitTests.Errors;
 public sealed class ErrorCatalogTests
 {
     [Fact]
-    public void Built_in_errors_form_a_valid_catalogue()
+    public void Built_in_errors_form_a_valid_catalog()
     {
         var catalog = new GatewayErrorCatalog([new BuiltInErrorCatalogContributor()]);
 

@@ -1,8 +1,11 @@
+using ApiGateway.Abstractions.Http;
+using ApiGateway.Abstractions.Routing;
 using ApiGateway.Observability.Metrics;
+using ApiGateway.Proxy.ApiLifecycle;
 using ApiGateway.Proxy.Cors;
 using ApiGateway.Proxy.Headers;
-using ApiGateway.Proxy.Lifecycle;
 using ApiGateway.Proxy.Limits;
+using ApiGateway.Proxy.Listeners;
 using ApiGateway.Proxy.LoadBalancing;
 using ApiGateway.Proxy.Routing;
 using ApiGateway.Proxy.Tenancy;
@@ -43,6 +46,9 @@ public sealed partial class GatewayCompositionRoot
                 services.GetRequiredService<ILogger<ResilientDestinationResolver>>()));
         }
 
+        // Which listener a request arrived on, for libraries that cannot see ListenerOptions.
+        Services.AddSingleton<IListenerClassifier, ListenerClassifier>();
+
         // Canary / weighted splitting, and the backend response-header limit.
         Services.AddSingleton<ILoadBalancingPolicy, WeightedLoadBalancingPolicy>();
         Services.AddSingleton<IForwarderHttpClientFactory, LimitedForwarderHttpClientFactory>();
@@ -71,13 +77,14 @@ public sealed partial class GatewayCompositionRoot
         Services.AddSingleton<IRouteMetadataParser<TPolicy>>(services => services.GetRequiredService<TParser>());
         Services.AddSingleton<IRouteMetadataValidator>(services => services.GetRequiredService<TParser>());
         Services.AddSingleton<RoutePolicyResolver<TPolicy>>();
+        Services.AddSingleton<IRoutePolicyResolver<TPolicy>>(services => services.GetRequiredService<RoutePolicyResolver<TPolicy>>());
     }
 
     private void ComposeKestrel()
     {
         var listeners = Listeners;
-        var protocolLimits = Errors.ProtocolLimits;
         var limits = Limits;
+        var protocolLimits = limits.Protocol;
         _builder.WebHost.ConfigureKestrel(kestrel =>
         {
             foreach (var port in listeners.PublicPorts)

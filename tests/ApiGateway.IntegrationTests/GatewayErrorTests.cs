@@ -113,15 +113,15 @@ public sealed class GatewayErrorTests(GatewayFactory factory) : IClassFixture<Ga
     }
 
     [Fact]
-    public async Task Error_catalogue_is_served_on_the_internal_listener_only()
+    public async Task Error_catalog_is_served_on_the_internal_listener_only()
     {
         using var internalClient = factory.CreateInternalClient();
         using var publicClient = factory.CreatePublicClient();
 
-        var catalogue = await internalClient.GetFromJsonAsync<JsonElement>("/internal/errors", Cancel);
+        var catalog = await internalClient.GetFromJsonAsync<JsonElement>("/internal/errors", Cancel);
         using var fromPublic = await publicClient.GetAsync("/internal/errors", Cancel);
 
-        catalogue.GetArrayLength().ShouldBeGreaterThan(10);
+        catalog.GetArrayLength().ShouldBeGreaterThan(10);
         fromPublic.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 

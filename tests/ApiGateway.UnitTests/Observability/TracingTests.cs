@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using ApiGateway.Observability.Correlation;
-using ApiGateway.Observability.Options;
 using ApiGateway.Observability.Tracing.Sampling;
 using ApiGateway.UnitTests.TestSupport;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +27,7 @@ public sealed class TracingTests : IDisposable
     public void Tail_sampling_exports_unsampled_traces_that_failed()
     {
         var inner = new CollectingProcessor();
-        using var processor = new TailSamplingProcessor(inner, new TailSamplingSettings(TimeSpan.FromSeconds(2), 16, 16), _meters);
+        using var processor = new TailSamplingProcessor(inner, new TailSamplingLimits(TimeSpan.FromSeconds(2), 16, 16), new TailSamplingMetrics(_meters));
 
         using var root = new Activity("root").Start();
         using var child = new Activity("child").SetParentId(root.TraceId, root.SpanId).Start();
@@ -48,7 +47,7 @@ public sealed class TracingTests : IDisposable
     public void Tail_sampling_drops_fast_successful_unsampled_traces()
     {
         var inner = new CollectingProcessor();
-        using var processor = new TailSamplingProcessor(inner, new TailSamplingSettings(TimeSpan.FromSeconds(2), 16, 16), _meters);
+        using var processor = new TailSamplingProcessor(inner, new TailSamplingLimits(TimeSpan.FromSeconds(2), 16, 16), new TailSamplingMetrics(_meters));
 
         using var root = new Activity("root").Start();
         root.SetTag("http.response.status_code", 200);

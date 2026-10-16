@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using ApiGateway.Abstractions.Context;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Http;
 using ApiGateway.Abstractions.Telemetry;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +8,7 @@ namespace ApiGateway.Observability.Synthetic;
 
 /// <summary>
 /// Marks requests carrying a valid <c>X-Synthetic-Check</c> signature as synthetic (excluded from usage
-/// analytics, labelled in metrics and traces). The header is always removed before forwarding, valid or not.
+/// analytics, labeled in metrics and traces). The header is always removed before forwarding, valid or not.
 /// </summary>
 public sealed class SyntheticRequestDetector(RequestDelegate next, SyntheticSignature? signature = null)
 {

@@ -1,5 +1,5 @@
 using ApiGateway.Errors;
-using ApiGateway.Observability.Options;
+using ApiGateway.Observability;
 using ApiGateway.Observability.Serilog;
 using ApiGateway.Proxy.Aggregation;
 using ApiGateway.Proxy.Compression;
@@ -37,13 +37,13 @@ public sealed partial class GatewayCompositionRoot
         // Values the composition itself depends on (ports, exporters, sampler, sinks). Bound and validated now,
         // with the same validators the options pipeline uses later, so bad configuration fails before anything starts.
         Listeners = BindEagerly(ListenerOptions.SectionName, new ListenerOptions(), new ListenerOptionsValidator(), new ListenerOptionsConsistencyValidator());
-        Errors = BindEagerly(ErrorsOptions.SectionName, new ErrorsOptions(), new ErrorsOptionsValidator(), new ErrorsOptionsCultureValidator());
+        Errors = BindEagerly(ErrorsOptions.SectionName, new ErrorsOptions(), new ErrorsOptionsValidator(), new ErrorsOptionsConsistencyValidator());
         Observability = BindEagerly(ObservabilityOptions.SectionName, new ObservabilityOptions(), new ObservabilityOptionsValidator(), new ObservabilityOptionsConsistencyValidator());
         Logging = BindEagerly(LoggingOptions.SectionName, new LoggingOptions(), new LoggingOptionsValidator());
         Routing = BindEagerly(RoutingOptions.SectionName, new RoutingOptions(), new RoutingOptionsValidator(), new RoutingOptionsConsistencyValidator(AllowWildcardHosts));
         Limits = BindEagerly(RequestLimitsOptions.SectionName, new RequestLimitsOptions(), new RequestLimitsOptionsValidator());
         Compression = BindEagerly(CompressionOptions.SectionName, new CompressionOptions());
-        Aggregation = BindEagerly(AggregationOptions.SectionName, new AggregationOptions(), new AggregationOptionsValidator(Routing.PublicPathPrefix, AllowWildcardHosts));
+        Aggregation = BindEagerly(AggregationOptions.SectionName, new AggregationOptions(), new AggregationOptionsConsistencyValidator(Routing.PublicPathPrefix, AllowWildcardHosts));
     }
 
     private IServiceCollection Services => _builder.Services;

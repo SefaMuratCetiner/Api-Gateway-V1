@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 namespace ApiGateway.Errors.Problems;
 
 /// <summary>
-/// Fails startup when the catalogue is invalid (resolving it runs its own checks) or when any supported culture
+/// Fails startup when the catalog is invalid (resolving it runs its own checks) or when any supported culture
 /// lacks a title or detail for any registered code. A missing translation is a deployment bug, not something to
 /// discover from a client's error response.
 /// </summary>

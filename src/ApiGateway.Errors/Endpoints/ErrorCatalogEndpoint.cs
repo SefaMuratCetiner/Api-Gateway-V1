@@ -5,12 +5,12 @@ using Microsoft.Extensions.Options;
 
 namespace ApiGateway.Errors.Endpoints;
 
-/// <summary>One entry of the published error catalogue.</summary>
+/// <summary>One entry of the published error catalog.</summary>
 public sealed record ErrorCatalogEntry(string Code, int Status, string Type, string Title, string? Detail);
 
 /// <summary>
 /// <c>GET /internal/errors</c> on the internal listener: every gateway error code with its status and text in
-/// the requested language. The source for the documentation's error catalogue.
+/// the requested language. The source for the documentation's error catalog.
 /// </summary>
 public static class ErrorCatalogEndpoint
 {

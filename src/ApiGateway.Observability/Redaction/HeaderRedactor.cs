@@ -6,7 +6,7 @@ namespace ApiGateway.Observability.Redaction;
 /// Selects headers for logging. Only allow-listed headers are returned at all; values of sensitive headers are
 /// masked even when allow-listed, other values are scrubbed and capped.
 /// </summary>
-public sealed class HeaderRedactor(SensitiveDataPolicy policy)
+public sealed class HeaderRedactor(SensitiveDataClassifier classifier)
 {
     public const int MaxValueLength = 256;
 
@@ -25,7 +25,7 @@ public sealed class HeaderRedactor(SensitiveDataPolicy policy)
                 continue;
             }
 
-            result[name] = policy.IsSensitiveName(name) ? policy.Mask : Cap(policy.Scrub(values.ToString()));
+            result[name] = classifier.IsSensitiveName(name) ? classifier.Mask : Cap(classifier.Scrub(values.ToString()));
         }
 
         return result;

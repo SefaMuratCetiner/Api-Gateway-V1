@@ -2,7 +2,7 @@
   <!--
     Central package management. Project files reference packages without versions.
     Only free and open-source packages (MIT / Apache-2.0 / BSD) are allowed. Explicitly excluded because of
-    commercial licences: FluentAssertions 8+, MediatR 13+, AutoMapper 15+, MassTransit 9+.
+    commercial licenses: FluentAssertions 8+, MediatR 13+, AutoMapper 15+, MassTransit 9+.
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -16,7 +16,7 @@
 
   <ItemGroup Label="Contracts">
     <!-- OpenAPI / JSON Schema request validation (MIT; brings NJsonSchema and Newtonsoft.Json, both MIT).
-         JsonSchema.Net 8+ is not used: it moved to a fee-based licence. -->
+         JsonSchema.Net 8+ is not used: it moved to a fee-based license. -->
     <PackageVersion Include="NSwag.Core" Version="14.7.1" />
   </ItemGroup>
 

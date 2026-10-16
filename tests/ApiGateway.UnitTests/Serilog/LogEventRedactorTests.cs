@@ -1,4 +1,3 @@
-using ApiGateway.Observability.Options;
 using ApiGateway.Observability.Redaction;
 using ApiGateway.Observability.Serilog.Redaction;
 using Serilog.Events;
@@ -9,7 +8,7 @@ namespace ApiGateway.UnitTests.Serilog;
 public sealed class LogEventRedactorTests
 {
     private static readonly MessageTemplateParser Parser = new();
-    private readonly LogEventRedactor _redactor = new(new SensitiveDataPolicy(new RedactionOptions()));
+    private readonly LogEventRedactor _redactor = new(new SensitiveDataClassifier(new RedactionOptions()));
 
     [Fact]
     public void Masks_properties_with_sensitive_names()

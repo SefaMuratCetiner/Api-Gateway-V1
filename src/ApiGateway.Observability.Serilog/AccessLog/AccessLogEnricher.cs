@@ -1,9 +1,7 @@
-using ApiGateway.Abstractions.Context;
-using ApiGateway.Abstractions.Errors;
-using ApiGateway.Observability.Metrics;
-using ApiGateway.Observability.Options;
+using ApiGateway.Abstractions.Features;
+using ApiGateway.Abstractions.Http;
+using ApiGateway.Observability.AccessLog;
 using ApiGateway.Observability.Redaction;
-using ApiGateway.Proxy.Listeners;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -22,14 +20,13 @@ public sealed class AccessLogEnricher(
     QueryStringRedactor queryRedactor,
     HeaderRedactor headerRedactor,
     IOptions<ObservabilityOptions> options,
-    IOptions<ListenerOptions> listeners)
+    IListenerClassifier listeners)
 {
     /// <summary>Message of the access-log event; every other field is a structured property.</summary>
     public const string MessageTemplate =
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0} ms (route {RouteId}, upstream {UpstreamMs} ms)";
 
     private readonly AccessLogOptions _options = options.Value.AccessLog;
-    private readonly ListenerOptions _listeners = listeners.Value;
 
     public void Enrich(IDiagnosticContext diagnostic, HttpContext context)
     {
@@ -81,7 +78,7 @@ public sealed class AccessLogEnricher(
             return LogEventLevel.Verbose;
         }
 
-        if (!_options.IncludeInternalListener && _listeners.IsInternal(context))
+        if (!_options.IncludeInternalListener && listeners.IsInternal(context))
         {
             return LogEventLevel.Verbose;
         }

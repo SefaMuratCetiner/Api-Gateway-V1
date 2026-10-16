@@ -15,7 +15,7 @@ public sealed partial class GatewayCompositionRoot
             configuration,
             Logging,
             Observability,
-            services.GetRequiredService<SensitiveDataPolicy>(),
+            services.GetRequiredService<SensitiveDataClassifier>(),
             Environment,
             services.GetServices<ILogEventSink>()));
 

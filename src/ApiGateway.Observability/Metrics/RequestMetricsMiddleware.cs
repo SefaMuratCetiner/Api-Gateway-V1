@@ -1,8 +1,7 @@
 using System.Diagnostics;
-using ApiGateway.Abstractions.Context;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Telemetry;
 using ApiGateway.Observability.IO;
-using ApiGateway.Observability.Options;
 using ApiGateway.Observability.Usage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -10,17 +9,9 @@ using Microsoft.Extensions.Options;
 
 namespace ApiGateway.Observability.Metrics;
 
-/// <summary>Body byte counts of the current request, for the access log and usage analytics.</summary>
-public interface IBodySizeFeature
-{
-    long? RequestBytes { get; }
-
-    long? ResponseBytes { get; }
-}
-
 /// <summary>
 /// Measures every request on the public listener: total duration, upstream wait, gateway overhead, body sizes,
-/// labelled by route/cluster/method/status class/client type. Adds the gateway's labels to ASP.NET Core's own
+/// labeled by route/cluster/method/status class/client type. Adds the gateway's labels to ASP.NET Core's own
 /// <c>http.server.request.duration</c> and feeds per-consumer usage analytics.
 /// </summary>
 public sealed class RequestMetricsMiddleware(

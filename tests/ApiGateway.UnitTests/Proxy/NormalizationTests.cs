@@ -1,7 +1,7 @@
-using ApiGateway.Proxy.Normalization;
-using ApiGateway.Proxy.Routing;
 using System.Text.Json;
 using ApiGateway.Abstractions.Errors;
+using ApiGateway.Proxy.Normalization;
+using ApiGateway.Proxy.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -139,7 +139,7 @@ public sealed class NormalizationTests
 
     private sealed class NoProblems : IProblemResponseWriter
     {
-        public ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteOptions? options = null) =>
+        public ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteArgs? args = null) =>
             throw new InvalidOperationException($"Unexpected problem {error.Code}.");
 
         public void WriteEmbedded(Utf8JsonWriter writer, HttpContext context, GatewayError error) => throw new NotSupportedException();

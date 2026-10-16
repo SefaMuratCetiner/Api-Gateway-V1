@@ -73,7 +73,7 @@ internal static class TestRoutes
         // Tenant-specific destinations next to a shared pool.
         settings.Destination("tenants", "shared", "http://shared.test/");
         settings.Destination("tenants", "acme", "http://acme.test/");
-        settings.Set("ReverseProxy:Clusters:tenants:Destinations:acme:Metadata:Tenant", "acme");
+        settings.Set("ReverseProxy:Clusters:tenants:Destinations:acme:Metadata:Tenancy.Tenants", "acme");
         settings.Route("tenant", "tenants", "/api/t/{tenant}/{**rest}", "GET");
         settings.Set("ReverseProxy:Routes:tenant:Metadata:Tenancy.RouteValue", "tenant");
     }
@@ -83,9 +83,9 @@ internal static class TestRoutes
         // Weighted split: the stable side is drained (weight 0), so every request goes to the canary.
         settings.Set("ReverseProxy:Clusters:canary:LoadBalancingPolicy", "Weighted");
         settings.Destination("canary", "stable", "http://stable.test/");
-        settings.Set("ReverseProxy:Clusters:canary:Destinations:stable:Metadata:Weight", "0");
+        settings.Set("ReverseProxy:Clusters:canary:Destinations:stable:Metadata:LoadBalancing.Weight", "0");
         settings.Destination("canary", "next", "http://next.test/");
-        settings.Set("ReverseProxy:Clusters:canary:Destinations:next:Metadata:Weight", "5");
+        settings.Set("ReverseProxy:Clusters:canary:Destinations:next:Metadata:LoadBalancing.Weight", "5");
         settings.Route("canary", "canary", "/api/canary/{**rest}", "GET");
     }
 

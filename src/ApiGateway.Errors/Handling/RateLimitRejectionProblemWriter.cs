@@ -1,6 +1,6 @@
 using System.Threading.RateLimiting;
-using ApiGateway.Abstractions.Context;
 using ApiGateway.Abstractions.Errors;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Telemetry;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -22,6 +22,6 @@ public sealed class RateLimitRejectionProblemWriter(IProblemResponseWriter write
             : DefaultRetryAfter;
 
         metrics.RecordRejection(RejectionReason.RateLimit, context.HttpContext.FindGatewayRequest()?.RouteId);
-        await writer.WriteAsync(context.HttpContext, GatewayErrors.RateLimited, new ProblemWriteOptions { RetryAfter = retryAfter });
+        await writer.WriteAsync(context.HttpContext, GatewayErrors.RateLimited, new ProblemWriteArgs { RetryAfter = retryAfter });
     }
 }

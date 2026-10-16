@@ -1,4 +1,3 @@
-using ApiGateway.Observability.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,4 @@
-using ApiGateway.Observability.Options;
-using ApiGateway.Proxy.Routing;
+using ApiGateway.Abstractions.Routing;
 using Microsoft.Extensions.Options;
 
 namespace ApiGateway.Observability.BodyLogging;
@@ -45,25 +44,35 @@ public sealed record BodyLoggingPolicy(bool Enabled, int MaxBytes, IReadOnlyList
 
 /// <summary>
 /// Route metadata keys:
-/// <c>Observability.BodyLogging</c> (true/false),
-/// <c>Observability.BodyLogging.MaxBytes</c> (int, capped by <c>HardMaxBytes</c>),
-/// <c>Observability.BodyLogging.ContentTypes</c> (comma-separated),
-/// <c>Observability.BodyLogging.Request</c> / <c>.Response</c> (true/false, default true).
+/// <c>BodyLogging.Enabled</c> (true/false),
+/// <c>BodyLogging.MaxBytes</c> (int, capped by <c>HardMaxBytes</c>),
+/// <c>BodyLogging.ContentTypes</c> (comma-separated),
+/// <c>BodyLogging.Request</c> / <c>.Response</c> (true/false, default true).
 /// </summary>
 public sealed class BodyLoggingMetadataParser(IOptions<ObservabilityOptions> options) : IRouteMetadataParser<BodyLoggingPolicy>
 {
-    public const string EnabledKey = "Observability.BodyLogging";
-    public const string MaxBytesKey = "Observability.BodyLogging.MaxBytes";
-    public const string ContentTypesKey = "Observability.BodyLogging.ContentTypes";
-    public const string RequestKey = "Observability.BodyLogging.Request";
-    public const string ResponseKey = "Observability.BodyLogging.Response";
+    public const string EnabledKey = "BodyLogging.Enabled";
+    public const string MaxBytesKey = "BodyLogging.MaxBytes";
+    public const string ContentTypesKey = "BodyLogging.ContentTypes";
+    public const string RequestKey = "BodyLogging.Request";
+    public const string ResponseKey = "BodyLogging.Response";
 
     private static readonly IReadOnlySet<string> KnownKeys =
         new HashSet<string>(StringComparer.Ordinal) { EnabledKey, MaxBytesKey, ContentTypesKey, RequestKey, ResponseKey };
 
+    /// <summary>Keys used before the <c>BodyLogging.</c> prefix; rejected so old configuration fails loudly.</summary>
+    private static readonly Dictionary<string, string> RenamedKeys = new(StringComparer.Ordinal)
+    {
+        ["Observability.BodyLogging"] = EnabledKey,
+        ["Observability.BodyLogging.MaxBytes"] = MaxBytesKey,
+        ["Observability.BodyLogging.ContentTypes"] = ContentTypesKey,
+        ["Observability.BodyLogging.Request"] = RequestKey,
+        ["Observability.BodyLogging.Response"] = ResponseKey,
+    };
+
     private readonly BodyLoggingOptions _options = options.Value.BodyLogging;
 
-    public string Prefix => EnabledKey;
+    public string Prefix => "BodyLogging.";
 
     public BodyLoggingPolicy Parse(IReadOnlyDictionary<string, string>? metadata)
     {
@@ -79,7 +88,8 @@ public sealed class BodyLoggingMetadataParser(IOptions<ObservabilityOptions> opt
     public IReadOnlyList<string> Validate(IReadOnlyDictionary<string, string>? metadata)
     {
         var problems = new List<string>();
-        RouteMetadata.ValidateKnownKeys(metadata, EnabledKey, KnownKeys, problems);
+        RouteMetadata.ValidateKnownKeys(metadata, Prefix, KnownKeys, problems);
+        RouteMetadata.ValidateRenamedKeys(metadata, RenamedKeys, problems);
         RouteMetadata.ValidateBool(metadata, EnabledKey, problems);
         RouteMetadata.ValidateBool(metadata, RequestKey, problems);
         RouteMetadata.ValidateBool(metadata, ResponseKey, problems);

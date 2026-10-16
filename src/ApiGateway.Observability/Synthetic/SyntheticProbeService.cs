@@ -1,32 +1,10 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using ApiGateway.Abstractions.Http;
-using ApiGateway.Abstractions.Telemetry;
-using ApiGateway.Observability.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ApiGateway.Observability.Synthetic;
-
-/// <summary>Latest result of one probe.</summary>
-public sealed record SyntheticProbeResult(string Probe, bool Success, int? StatusCode, TimeSpan Duration, DateTimeOffset At, int ConsecutiveFailures);
-
-/// <summary>Shared, thread-safe store of the latest probe results (read by the health check).</summary>
-public sealed class SyntheticCheckState
-{
-    private readonly ConcurrentDictionary<string, SyntheticProbeResult> _results = new(StringComparer.Ordinal);
-
-    public IReadOnlyCollection<SyntheticProbeResult> Results => [.. _results.Values];
-
-    public SyntheticProbeResult Update(string probe, bool success, int? statusCode, TimeSpan duration, DateTimeOffset at) =>
-        _results.AddOrUpdate(
-            probe,
-            static (name, state) => new SyntheticProbeResult(name, state.success, state.statusCode, state.duration, state.at, state.success ? 0 : 1),
-            static (name, previous, state) => new SyntheticProbeResult(name, state.success, state.statusCode, state.duration, state.at, state.success ? 0 : previous.ConsecutiveFailures + 1),
-            (success, statusCode, duration, at));
-}
 
 /// <summary>
 /// Calls each configured probe through the gateway's <em>public</em> listener on its interval, exactly like a
@@ -43,9 +21,8 @@ public sealed partial class SyntheticProbeService : BackgroundService
     private readonly SyntheticCheckState _state;
     private readonly SyntheticOptions _options;
     private readonly TimeProvider _time;
+    private readonly SyntheticMetrics _metrics;
     private readonly ILogger<SyntheticProbeService> _logger;
-    private readonly Counter<long> _checks;
-    private readonly Histogram<double> _duration;
 
     public SyntheticProbeService(
         IHttpClientFactory clients,
@@ -53,7 +30,7 @@ public sealed partial class SyntheticProbeService : BackgroundService
         SyntheticCheckState state,
         IOptions<ObservabilityOptions> options,
         TimeProvider time,
-        IMeterFactory meterFactory,
+        SyntheticMetrics metrics,
         ILogger<SyntheticProbeService> logger)
     {
         _clients = clients;
@@ -61,10 +38,8 @@ public sealed partial class SyntheticProbeService : BackgroundService
         _state = state;
         _options = options.Value.Synthetic;
         _time = time;
+        _metrics = metrics;
         _logger = logger;
-        var meter = meterFactory.Create(GatewayTelemetry.SyntheticMeter);
-        _checks = meter.CreateCounter<long>("gateway.synthetic.checks", unit: "{check}", description: "Synthetic checks through the public listener, by probe and outcome.");
-        _duration = meter.CreateHistogram<double>("gateway.synthetic.duration", unit: "s", description: "Duration of synthetic checks.");
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -124,9 +99,7 @@ public sealed partial class SyntheticProbeService : BackgroundService
         var success = string.Equals(outcome, "success", StringComparison.Ordinal);
         var result = _state.Update(probe.Name, success, status, elapsed, _time.GetUtcNow());
 
-        var tags = new TagList { { GatewayTelemetry.Tags.Probe, probe.Name }, { GatewayTelemetry.Tags.Outcome, outcome } };
-        _checks.Add(1, tags);
-        _duration.Record(elapsed.TotalSeconds, new TagList { { GatewayTelemetry.Tags.Probe, probe.Name } });
+        _metrics.RecordCheck(probe.Name, outcome, elapsed);
 
         if (!success)
         {

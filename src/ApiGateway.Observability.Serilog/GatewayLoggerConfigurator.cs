@@ -1,5 +1,5 @@
 using ApiGateway.Abstractions.Telemetry;
-using ApiGateway.Observability.Options;
+using ApiGateway.Observability.Export;
 using ApiGateway.Observability.Redaction;
 using ApiGateway.Observability.Serilog.Redaction;
 using Microsoft.Extensions.Hosting;
@@ -31,8 +31,8 @@ public static class GatewayLoggerConfigurator
     /// <summary>Console-only logger for the time before configuration is loaded; replaced once the host is built.</summary>
     public static ReloadableLogger CreateBootstrapLogger()
     {
-        var policy = new SensitiveDataPolicy(new RedactionOptions());
-        var redactor = new LogEventRedactor(policy);
+        var classifier = new SensitiveDataClassifier(new RedactionOptions());
+        var redactor = new LogEventRedactor(classifier);
         var configuration = new LoggerConfiguration().MinimumLevel.Information();
         Redacted(configuration.WriteTo, redactor, wrapped => wrapped.Console(new RenderedCompactJsonFormatter()));
         return configuration.CreateBootstrapLogger();
@@ -42,11 +42,11 @@ public static class GatewayLoggerConfigurator
         LoggerConfiguration configuration,
         LoggingOptions logging,
         ObservabilityOptions observability,
-        SensitiveDataPolicy policy,
+        SensitiveDataClassifier classifier,
         IHostEnvironment environment,
         IEnumerable<ILogEventSink>? additionalSinks = null)
     {
-        var redactor = new LogEventRedactor(policy);
+        var redactor = new LogEventRedactor(classifier);
 
         configuration.MinimumLevel.Is(logging.MinimumLevel);
         foreach (var (source, level) in logging.Overrides)

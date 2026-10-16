@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ApiGateway.Abstractions.Errors;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Errors.Localization;
 using ApiGateway.Errors.Problems;
 using ApiGateway.Errors.Telemetry;
@@ -47,7 +48,7 @@ public sealed class ProblemResponseWriterTests : IDisposable
     {
         var context = NewContext("/");
 
-        await _writer.WriteAsync(context, GatewayErrors.NoHealthyDestination, new ProblemWriteOptions { RetryAfter = TimeSpan.FromMilliseconds(4200) });
+        await _writer.WriteAsync(context, GatewayErrors.NoHealthyDestination, new ProblemWriteArgs { RetryAfter = TimeSpan.FromMilliseconds(4200) });
 
         context.Response.StatusCode.ShouldBe(503);
         context.Response.Headers.RetryAfter.ToString().ShouldBe("5");

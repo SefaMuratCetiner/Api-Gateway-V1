@@ -1,5 +1,5 @@
-using ApiGateway.Abstractions.Context;
-using ApiGateway.Proxy.Lifecycle;
+using ApiGateway.Abstractions.Features;
+using ApiGateway.Proxy.ApiLifecycle;
 using ApiGateway.Proxy.LoadBalancing;
 using ApiGateway.Proxy.Routing;
 using ApiGateway.Proxy.Tenancy;
@@ -50,22 +50,22 @@ public sealed class RoutingTests
     [Fact]
     public void Weighted_policy_picks_by_cumulative_weight()
     {
-        var stable = Destination("stable", ("Weight", "90"));
-        var canary = Destination("canary", ("Weight", "10"));
+        var stable = Destination("stable", (WeightedLoadBalancingPolicy.WeightKey, "90"));
+        var canary = Destination("canary", (WeightedLoadBalancingPolicy.WeightKey, "10"));
         IReadOnlyList<DestinationState> destinations = [stable, canary];
 
         WeightedLoadBalancingPolicy.Pick(destinations, 0.0).ShouldBe(stable);
         WeightedLoadBalancingPolicy.Pick(destinations, 0.89).ShouldBe(stable);
         WeightedLoadBalancingPolicy.Pick(destinations, 0.91).ShouldBe(canary);
-        WeightedLoadBalancingPolicy.Pick([Destination("drained", ("Weight", "0"))], 0.5).ShouldBeNull();
-        WeightedLoadBalancingPolicy.Validate(new Dictionary<string, string>(StringComparer.Ordinal) { ["Weight"] = "-1" }).ShouldNotBeEmpty();
+        WeightedLoadBalancingPolicy.Pick([Destination("drained", (WeightedLoadBalancingPolicy.WeightKey, "0"))], 0.5).ShouldBeNull();
+        WeightedLoadBalancingPolicy.Validate(new Dictionary<string, string>(StringComparer.Ordinal) { [WeightedLoadBalancingPolicy.WeightKey] = "-1" }).ShouldNotBeEmpty();
     }
 
     [Fact]
     public void Tenants_use_their_dedicated_destinations_or_the_shared_pool()
     {
         var shared = Destination("shared");
-        var acme = Destination("acme", ("Tenant", "acme, acme-eu"));
+        var acme = Destination("acme", (TenantDestinations.TenantsKey, "acme, acme-eu"));
         IReadOnlyList<DestinationState> all = [shared, acme];
 
         TenantDestinations.Select(all, all, "acme").ShouldBe([acme]);
@@ -75,6 +75,15 @@ public sealed class RoutingTests
 
         // A tenant whose dedicated destinations are all down is not spilled onto the shared pool.
         TenantDestinations.Select(all, [shared], "acme").ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Renamed_destination_keys_are_rejected_with_their_new_name()
+    {
+        var old = new Dictionary<string, string>(StringComparer.Ordinal) { ["Weight"] = "5", ["Tenant"] = "acme" };
+
+        WeightedLoadBalancingPolicy.Validate(old).ShouldContain("'Weight' was renamed to 'LoadBalancing.Weight'");
+        TenantDestinations.Validate(old).ShouldContain("'Tenant' was renamed to 'Tenancy.Tenants'");
     }
 
     [Fact]

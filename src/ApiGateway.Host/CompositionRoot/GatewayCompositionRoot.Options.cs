@@ -1,5 +1,5 @@
 using ApiGateway.Errors;
-using ApiGateway.Observability.Options;
+using ApiGateway.Observability;
 using ApiGateway.Observability.Serilog;
 using ApiGateway.Proxy.Aggregation;
 using ApiGateway.Proxy.Compression;
@@ -18,16 +18,16 @@ public sealed partial class GatewayCompositionRoot
     private void ComposeOptions()
     {
         AddOptions<ListenerOptions>(ListenerOptions.SectionName, new ListenerOptionsValidator(), new ListenerOptionsConsistencyValidator());
-        AddOptions<ErrorsOptions>(ErrorsOptions.SectionName, new ErrorsOptionsValidator(), new ErrorsOptionsCultureValidator());
+        AddOptions<ErrorsOptions>(ErrorsOptions.SectionName, new ErrorsOptionsValidator(), new ErrorsOptionsConsistencyValidator());
         AddOptions<ObservabilityOptions>(ObservabilityOptions.SectionName, new ObservabilityOptionsValidator(), new ObservabilityOptionsConsistencyValidator());
         AddOptions<LoggingOptions>(LoggingOptions.SectionName, new LoggingOptionsValidator());
         AddOptions<RoutingOptions>(RoutingOptions.SectionName, new RoutingOptionsValidator(), new RoutingOptionsConsistencyValidator(AllowWildcardHosts));
         AddOptions<HeaderOptions>(HeaderOptions.SectionName);
         AddOptions<RequestLimitsOptions>(RequestLimitsOptions.SectionName, new RequestLimitsOptionsValidator());
-        AddOptions<GatewayCorsOptions>(GatewayCorsOptions.SectionName, new GatewayCorsOptionsValidator());
+        AddOptions<GatewayCorsOptions>(GatewayCorsOptions.SectionName, new GatewayCorsOptionsConsistencyValidator());
         AddOptions<CompressionOptions>(CompressionOptions.SectionName);
         AddOptions<ContractValidationOptions>(ContractValidationOptions.SectionName, new ContractValidationOptionsValidator());
-        AddOptions<AggregationOptions>(AggregationOptions.SectionName, new AggregationOptionsValidator(Routing.PublicPathPrefix, AllowWildcardHosts));
+        AddOptions<AggregationOptions>(AggregationOptions.SectionName, new AggregationOptionsConsistencyValidator(Routing.PublicPathPrefix, AllowWildcardHosts));
     }
 
     /// <summary>

@@ -17,7 +17,7 @@ processors:
     limit_percentage: 80
     spike_limit_percentage: 20
 
-  # Defence in depth: drop credentials that should never have been recorded.
+  # Defense in depth: drop credentials that should never have been recorded.
   attributes/scrub:
     actions:
       - key: http.request.header.authorization

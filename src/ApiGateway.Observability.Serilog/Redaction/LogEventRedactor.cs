@@ -10,11 +10,11 @@ namespace ApiGateway.Observability.Serilog.Redaction;
 /// text (for libraries that log pre-formatted strings) and from exception text. Returns the same instance when
 /// nothing needed changing, which is the common case.
 /// </summary>
-public sealed class LogEventRedactor(SensitiveDataPolicy policy)
+public sealed class LogEventRedactor(SensitiveDataClassifier classifier)
 {
     private static readonly MessageTemplateParser Parser = new();
 
-    private readonly ScalarValue _mask = new(policy.Mask);
+    private readonly ScalarValue _mask = new(classifier.Mask);
 
     public LogEvent Redact(LogEvent logEvent)
     {
@@ -22,7 +22,7 @@ public sealed class LogEventRedactor(SensitiveDataPolicy policy)
         var index = 0;
         foreach (var (name, value) in logEvent.Properties)
         {
-            var redacted = policy.IsSensitiveName(name) ? _mask : RedactValue(value);
+            var redacted = classifier.IsSensitiveName(name) ? _mask : RedactValue(value);
             if (!ReferenceEquals(redacted, value) && properties is null)
             {
                 properties = new List<LogEventProperty>(logEvent.Properties.Count);
@@ -34,10 +34,10 @@ public sealed class LogEventRedactor(SensitiveDataPolicy policy)
         }
 
         var templateText = logEvent.MessageTemplate.Text;
-        var scrubbedTemplate = policy.Scrub(templateText);
+        var scrubbedTemplate = classifier.Scrub(templateText);
         var templateChanged = !ReferenceEquals(scrubbedTemplate, templateText) && !string.Equals(scrubbedTemplate, templateText, StringComparison.Ordinal);
 
-        var exception = logEvent.Exception is { } original ? ScrubbedException.CreateIfNeeded(original, policy) : null;
+        var exception = logEvent.Exception is { } original ? ScrubbedException.CreateIfNeeded(original, classifier) : null;
         var exceptionChanged = !ReferenceEquals(exception, logEvent.Exception);
 
         if (properties is null && !templateChanged && !exceptionChanged)
@@ -66,7 +66,7 @@ public sealed class LogEventRedactor(SensitiveDataPolicy policy)
 
     private LogEventPropertyValue Scrubbed(LogEventPropertyValue original, string text)
     {
-        var scrubbed = policy.Scrub(text);
+        var scrubbed = classifier.Scrub(text);
         return ReferenceEquals(scrubbed, text) || string.Equals(scrubbed, text, StringComparison.Ordinal) ? original : new ScalarValue(scrubbed);
     }
 
@@ -77,7 +77,7 @@ public sealed class LogEventRedactor(SensitiveDataPolicy policy)
         for (var i = 0; i < properties.Length; i++)
         {
             var property = structure.Properties[i];
-            var redacted = policy.IsSensitiveName(property.Name) ? _mask : RedactValue(property.Value);
+            var redacted = classifier.IsSensitiveName(property.Name) ? _mask : RedactValue(property.Value);
             changed |= !ReferenceEquals(redacted, property.Value);
             properties[i] = ReferenceEquals(redacted, property.Value) ? property : new LogEventProperty(property.Name, redacted);
         }
@@ -104,7 +104,7 @@ public sealed class LogEventRedactor(SensitiveDataPolicy policy)
         var entries = new List<KeyValuePair<ScalarValue, LogEventPropertyValue>>(dictionary.Elements.Count);
         foreach (var (key, value) in dictionary.Elements)
         {
-            var redacted = key.Value is string name && policy.IsSensitiveName(name) ? _mask : RedactValue(value);
+            var redacted = key.Value is string name && classifier.IsSensitiveName(name) ? _mask : RedactValue(value);
             changed |= !ReferenceEquals(redacted, value);
             entries.Add(new(key, redacted));
         }

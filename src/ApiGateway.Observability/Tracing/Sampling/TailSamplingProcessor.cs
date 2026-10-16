@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using ApiGateway.Abstractions.Telemetry;
 using OpenTelemetry;
 
 namespace ApiGateway.Observability.Tracing.Sampling;
@@ -9,7 +7,7 @@ namespace ApiGateway.Observability.Tracing.Sampling;
 /// <param name="SlowThreshold">Local root spans at least this long are exported.</param>
 /// <param name="MaxTraces">Undecided traces held at once; the oldest is dropped beyond it.</param>
 /// <param name="MaxSpansPerTrace">Spans held per undecided trace; further spans of that trace are dropped.</param>
-public sealed record TailSamplingSettings(TimeSpan SlowThreshold, int MaxTraces, int MaxSpansPerTrace);
+public sealed record TailSamplingLimits(TimeSpan SlowThreshold, int MaxTraces, int MaxSpansPerTrace);
 
 /// <summary>
 /// Local tail sampling in front of an export processor. Spans that the head sampler only recorded are held per
@@ -25,20 +23,17 @@ public sealed record TailSamplingSettings(TimeSpan SlowThreshold, int MaxTraces,
 public sealed class TailSamplingProcessor : BaseProcessor<Activity>
 {
     private readonly BaseProcessor<Activity> _inner;
-    private readonly TailSamplingSettings _settings;
+    private readonly TailSamplingLimits _limits;
     private readonly Lock _lock = new();
     private readonly Dictionary<ActivityTraceId, LinkedListNode<PendingTrace>> _pending = [];
     private readonly LinkedList<PendingTrace> _order = new();
-    private readonly Counter<long> _decisions;
-    private readonly Counter<long> _evictions;
+    private readonly TailSamplingMetrics _metrics;
 
-    public TailSamplingProcessor(BaseProcessor<Activity> inner, TailSamplingSettings settings, IMeterFactory meterFactory)
+    public TailSamplingProcessor(BaseProcessor<Activity> inner, TailSamplingLimits limits, TailSamplingMetrics metrics)
     {
         _inner = inner;
-        _settings = settings;
-        var meter = meterFactory.Create(GatewayTelemetry.Name);
-        _decisions = meter.CreateCounter<long>("gateway.tracing.tail_decisions", unit: "{trace}", description: "Unsampled traces kept or dropped at the end of the request.");
-        _evictions = meter.CreateCounter<long>("gateway.tracing.tail_evictions", unit: "{trace}", description: "Undecided traces dropped because the tail buffer was full.");
+        _limits = limits;
+        _metrics = metrics;
     }
 
     public override void OnStart(Activity data) => _inner.OnStart(data);
@@ -58,8 +53,8 @@ public sealed class TailSamplingProcessor : BaseProcessor<Activity>
         }
 
         var spans = Release(data.TraceId);
-        var keep = IsInteresting(data, _settings.SlowThreshold);
-        _decisions.Add(1, new KeyValuePair<string, object?>(GatewayTelemetry.Tags.Outcome, keep ? "kept" : "dropped"));
+        var keep = IsInteresting(data, _limits.SlowThreshold);
+        _metrics.RecordDecision(keep);
         if (!keep)
         {
             return;
@@ -118,7 +113,7 @@ public sealed class TailSamplingProcessor : BaseProcessor<Activity>
         {
             if (_pending.TryGetValue(span.TraceId, out var node))
             {
-                if (node.Value.Spans.Count < _settings.MaxSpansPerTrace)
+                if (node.Value.Spans.Count < _limits.MaxSpansPerTrace)
                 {
                     node.Value.Spans.Add(span);
                 }
@@ -126,11 +121,11 @@ public sealed class TailSamplingProcessor : BaseProcessor<Activity>
                 return;
             }
 
-            if (_pending.Count >= _settings.MaxTraces && _order.First is { } oldest)
+            if (_pending.Count >= _limits.MaxTraces && _order.First is { } oldest)
             {
                 _order.RemoveFirst();
                 _pending.Remove(oldest.Value.TraceId);
-                _evictions.Add(1);
+                _metrics.RecordEviction();
             }
 
             var trace = new PendingTrace(span.TraceId);

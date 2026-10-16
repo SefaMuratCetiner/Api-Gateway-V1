@@ -1,4 +1,4 @@
-using ApiGateway.Proxy.Routing;
+using ApiGateway.Abstractions.Routing;
 using Microsoft.AspNetCore.Http;
 using Yarp.ReverseProxy.LoadBalancing;
 using Yarp.ReverseProxy.Model;
@@ -7,15 +7,21 @@ namespace ApiGateway.Proxy.LoadBalancing;
 
 /// <summary>
 /// Load-balancing policy <c>Weighted</c> for canary and weighted traffic splitting: each available destination
-/// receives a share of requests proportional to its <c>Weight</c> metadata (0..10000, default 1; 0 takes no
+/// receives a share of requests proportional to its <c>LoadBalancing.Weight</c> metadata (0..10000, default 1; 0 takes no
 /// traffic). Example: stable destinations with weight 95 and a canary with weight 5. Combine with session affinity
 /// to keep a client on one side.
 /// </summary>
 public sealed class WeightedLoadBalancingPolicy : ILoadBalancingPolicy
 {
     public const string PolicyName = "Weighted";
-    public const string WeightKey = "Weight";
+    public const string MetadataPrefix = "LoadBalancing.";
+    public const string WeightKey = "LoadBalancing.Weight";
     public const int MaxWeight = 10_000;
+
+    private static readonly IReadOnlySet<string> KnownKeys = new HashSet<string>(StringComparer.Ordinal) { WeightKey };
+
+    /// <summary>Key used before the <c>LoadBalancing.</c> prefix; rejected so an old canary split fails loudly.</summary>
+    private static readonly Dictionary<string, string> RenamedKeys = new(StringComparer.Ordinal) { ["Weight"] = WeightKey };
 
     public string Name => PolicyName;
 
@@ -57,6 +63,8 @@ public sealed class WeightedLoadBalancingPolicy : ILoadBalancingPolicy
     public static IReadOnlyList<string> Validate(IReadOnlyDictionary<string, string>? metadata)
     {
         var problems = new List<string>();
+        RouteMetadata.ValidateKnownKeys(metadata, MetadataPrefix, KnownKeys, problems);
+        RouteMetadata.ValidateRenamedKeys(metadata, RenamedKeys, problems);
         RouteMetadata.ValidateInt(metadata, WeightKey, 0, MaxWeight, problems);
         return problems;
     }

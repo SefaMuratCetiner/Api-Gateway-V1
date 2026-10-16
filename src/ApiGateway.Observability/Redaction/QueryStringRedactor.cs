@@ -7,7 +7,7 @@ namespace ApiGateway.Observability.Redaction;
 /// Makes a query string safe to log: values of sensitive parameters are masked, everything else is kept in
 /// order (still URL-encoded), and the result is length-capped.
 /// </summary>
-public sealed class QueryStringRedactor(SensitiveDataPolicy policy)
+public sealed class QueryStringRedactor(SensitiveDataClassifier classifier)
 {
     public const int MaxLength = 1024;
 
@@ -46,7 +46,7 @@ public sealed class QueryStringRedactor(SensitiveDataPolicy policy)
             if (equals >= 0)
             {
                 builder.Append('=');
-                builder.Append(policy.IsSensitiveName(decodedName) ? policy.Mask : policy.Scrub(pair[(equals + 1)..].ToString()));
+                builder.Append(classifier.IsSensitiveName(decodedName) ? classifier.Mask : classifier.Scrub(pair[(equals + 1)..].ToString()));
             }
 
             if (builder.Length > MaxLength)

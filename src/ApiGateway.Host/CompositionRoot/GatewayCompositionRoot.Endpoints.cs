@@ -3,7 +3,7 @@ using ApiGateway.Errors.Forwarding;
 using ApiGateway.Observability.BodyLogging;
 using ApiGateway.Observability.Synthetic;
 using ApiGateway.Proxy.Aggregation;
-using ApiGateway.Proxy.Lifecycle;
+using ApiGateway.Proxy.ApiLifecycle;
 using ApiGateway.Proxy.Limits;
 using ApiGateway.Proxy.Routing;
 using ApiGateway.Proxy.Tenancy;
@@ -19,7 +19,7 @@ public sealed partial class GatewayCompositionRoot
 
     /// <summary>
     /// Public listener: proxied routes and composite endpoints under <c>Routing:PublicPathPrefix</c> (and, in
-    /// Development only, the error catalogue). Internal listener: metrics, error catalogue, synthetic health.
+    /// Development only, the error catalog). Internal listener: metrics, error catalog, synthetic health.
     /// Unmatched requests fall through to a 404 <c>gateway.route_not_found</c> problem.
     /// </summary>
     public void ComposeEndpoints(WebApplication app)
@@ -34,7 +34,7 @@ public sealed partial class GatewayCompositionRoot
                 proxy.UseMiddleware<ApiLifecycleMiddleware>();
                 proxy.UseMiddleware<RequestBodyLimitMiddleware>();
                 proxy.UseMiddleware<RequestValidationMiddleware>();
-                proxy.UseMiddleware<BodyCaptureMiddleware>();
+                proxy.UseMiddleware<BodyLoggingMiddleware>();
                 proxy.UseMiddleware<ForwarderErrorProblemMiddleware>();
                 proxy.UseMiddleware<TenantRoutingMiddleware>();
                 proxy.UseSessionAffinity();

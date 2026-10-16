@@ -1,6 +1,7 @@
 using ApiGateway.Errors;
 using ApiGateway.Host.CompositionRoot;
-using ApiGateway.Observability.Options;
+using ApiGateway.Observability;
+using ApiGateway.Observability.Metrics;
 using Microsoft.Extensions.Configuration;
 
 namespace ApiGateway.IntegrationTests;

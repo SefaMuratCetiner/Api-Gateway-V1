@@ -50,7 +50,7 @@ public sealed partial class ForwarderErrorProblemMiddleware(
         }
 
         var writeOptions = error == GatewayErrors.NoHealthyDestination
-            ? new ProblemWriteOptions { RetryAfter = _noHealthyDestinationRetryAfter }
+            ? new ProblemWriteArgs { RetryAfter = _noHealthyDestinationRetryAfter }
             : null;
         await writer.WriteAsync(context, error, writeOptions);
     }

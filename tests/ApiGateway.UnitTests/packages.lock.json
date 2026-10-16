@@ -353,7 +353,6 @@
         "type": "Project",
         "dependencies": {
           "ApiGateway.Abstractions": "[1.0.0, )",
-          "ApiGateway.Proxy": "[1.0.0, )",
           "OpenTelemetry": "[1.19.1, )",
           "Yarp.ReverseProxy": "[2.3.0, )",
           "Yarp.Telemetry.Consumption": "[2.3.0, )"
@@ -364,7 +363,6 @@
         "dependencies": {
           "ApiGateway.Abstractions": "[1.0.0, )",
           "ApiGateway.Observability": "[1.0.0, )",
-          "ApiGateway.Proxy": "[1.0.0, )",
           "Serilog": "[4.4.0, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Expressions": "[5.0.0, )",

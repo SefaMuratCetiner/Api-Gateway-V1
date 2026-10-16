@@ -1,6 +1,5 @@
 using System.Diagnostics;
-using ApiGateway.Abstractions.Context;
-using ApiGateway.Abstractions.Errors;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Telemetry;
 using Microsoft.AspNetCore.Http;
 

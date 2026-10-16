@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
     <ProjectReference Include="..\ApiGateway.Observability\ApiGateway.Observability.csproj" />
-    <ProjectReference Include="..\ApiGateway.Proxy\ApiGateway.Proxy.csproj" />
   </ItemGroup>
 
   <ItemGroup>

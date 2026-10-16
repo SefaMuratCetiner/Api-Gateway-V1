@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using ApiGateway.Abstractions.Telemetry;
-using ApiGateway.Observability.Options;
 using Microsoft.Extensions.Options;
 
 namespace ApiGateway.Observability.Usage;

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using ApiGateway.Abstractions.Errors;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Telemetry;
 using ApiGateway.Errors.Localization;
 using ApiGateway.Errors.Telemetry;
@@ -26,7 +27,7 @@ public sealed class ProblemResponseWriter(
 
     private readonly ErrorsOptions _options = errorsOptions.Value;
 
-    public async ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteOptions? options = null)
+    public async ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteArgs? args = null)
     {
         var response = context.Response;
         if (response.HasStarted)
@@ -35,7 +36,7 @@ public sealed class ProblemResponseWriter(
         }
 
         var culture = languages.Resolve(context);
-        var document = Build(context, error, culture, options);
+        var document = Build(context, error, culture, args);
 
         // Anything a previous component set for its own body no longer applies.
         response.Headers.Remove(HeaderNames.ContentLength);
@@ -48,7 +49,7 @@ public sealed class ProblemResponseWriter(
         response.Headers.CacheControl = "no-store";
         response.Headers.ContentLanguage = culture.Name;
         response.Headers.Append(HeaderNames.Vary, HeaderNames.AcceptLanguage);
-        if (options?.RetryAfter is { } retryAfter)
+        if (args?.RetryAfter is { } retryAfter)
         {
             response.Headers.RetryAfter = RetryAfterSeconds(retryAfter).ToString(CultureInfo.InvariantCulture);
         }
@@ -74,8 +75,8 @@ public sealed class ProblemResponseWriter(
     public void WriteEmbedded(Utf8JsonWriter writer, HttpContext context, GatewayError error) =>
         Build(context, error, languages.Resolve(context)).WriteTo(writer);
 
-    /// <summary>Builds the document without writing it (also used by tests and the catalogue endpoint).</summary>
-    public ProblemDocument Build(HttpContext context, GatewayError error, CultureInfo culture, ProblemWriteOptions? options = null)
+    /// <summary>Builds the document without writing it (also used by tests and the catalog endpoint).</summary>
+    public ProblemDocument Build(HttpContext context, GatewayError error, CultureInfo culture, ProblemWriteArgs? args = null)
     {
         var text = localizer.Localize(error, culture);
         return new ProblemDocument(
@@ -86,7 +87,7 @@ public sealed class ProblemResponseWriter(
             Instance: InstanceOf(context.Request.Path, _options.MaxInstanceLength),
             Code: error.Code,
             TraceId: TraceIdOf(context),
-            Extensions: options?.Extensions);
+            Extensions: args?.Extensions);
     }
 
     /// <summary>The trace ID echoed in <c>traceId</c> and in the <c>X-Trace-Id</c> header.</summary>

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using ApiGateway.Proxy.Validation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog.Core;
 using Serilog.Events;
-using ApiGateway.Proxy.Validation;
 using Yarp.ReverseProxy.Forwarder;
 
 namespace ApiGateway.IntegrationTests.Infrastructure;

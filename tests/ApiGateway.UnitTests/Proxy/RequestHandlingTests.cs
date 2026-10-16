@@ -33,7 +33,7 @@ public sealed class RequestHandlingTests
             },
         };
 
-        var result = new GatewayCorsOptionsValidator().Validate(null, options);
+        var result = new GatewayCorsOptionsConsistencyValidator().Validate(null, options);
 
         result.Failed.ShouldBeTrue();
         var failures = result.Failures!.ToList();
@@ -134,7 +134,7 @@ public sealed class RequestHandlingTests
             },
         };
 
-        var failures = new AggregationOptionsValidator("/api", allowWildcardHosts: false).Validate(null, options).Failures!.ToList();
+        var failures = new AggregationOptionsConsistencyValidator("/api", allowWildcardHosts: false).Validate(null, options).Failures!.ToList();
 
         failures.ShouldContain(failure => failure.Contains("public prefix"));
         failures.ShouldContain(failure => failure.Contains("Match.Hosts"));
@@ -179,7 +179,7 @@ public sealed class RequestHandlingTests
     {
         public GatewayError? Written { get; private set; }
 
-        public ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteOptions? options = null)
+        public ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteArgs? args = null)
         {
             Written = error;
             return ValueTask.FromResult(true);

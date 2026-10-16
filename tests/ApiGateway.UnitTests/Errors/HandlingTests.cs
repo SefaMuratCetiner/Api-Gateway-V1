@@ -1,7 +1,8 @@
 using ApiGateway.Abstractions.Errors;
-using ApiGateway.Errors;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Errors.Handling;
 using ApiGateway.Errors.Localization;
+using ApiGateway.Proxy.Limits;
 using ApiGateway.UnitTests.TestSupport;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;

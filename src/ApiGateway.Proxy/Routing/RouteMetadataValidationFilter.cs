@@ -1,3 +1,4 @@
+using ApiGateway.Abstractions.Routing;
 using Yarp.ReverseProxy.Configuration;
 
 namespace ApiGateway.Proxy.Routing;

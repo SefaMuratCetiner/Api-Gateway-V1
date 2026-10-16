@@ -6,7 +6,7 @@ namespace ApiGateway.Proxy.Listeners;
 
 /// <summary>
 /// Configuration section <c>Listeners</c>. The public listener carries only proxied API traffic; metrics,
-/// health, the error catalogue and other operational endpoints live on the internal listener, which is
+/// health, the error catalog and other operational endpoints live on the internal listener, which is
 /// never exposed outside the cluster network.
 /// </summary>
 public sealed class ListenerOptions

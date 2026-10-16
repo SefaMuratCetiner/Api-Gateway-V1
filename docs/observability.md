@@ -4,8 +4,8 @@
 
 | Project | Responsibility |
 |---|---|
-| `ApiGateway.Abstractions` | Request features (`IGatewayRequestFeature`, `IUpstreamTimingFeature`, `ICorrelationIdFeature`), telemetry names, `IGatewayMetrics`, `IAuditLog` |
-| `ApiGateway.Observability` | Provider-neutral: correlation, trace trust and sampling, metrics, redaction rules, IP anonymization, body capture, audit, usage, synthetic checks |
+| `ApiGateway.Abstractions` | Request features (`IGatewayRequestFeature`, `IUpstreamTimingFeature`, `ICorrelationIdFeature`, …), per-route policy contracts (`IRouteMetadataParser`, `IRoutePolicyResolver`), `IListenerClassifier`, telemetry names, `IGatewayMetrics`, `IAuditLog` |
+| `ApiGateway.Observability` | Provider-neutral: correlation, trace trust and sampling, metrics, redaction rules, IP anonymization, body logging, audit, usage, synthetic checks |
 | `ApiGateway.Observability.Serilog` | Access log enrichment, redacting sink, logger configuration (sinks, retention, audit/usage sub-loggers) |
 | `ApiGateway.Host/CompositionRoot` | Wires everything: options, Serilog, OpenTelemetry, middleware order, endpoints |
 
@@ -43,7 +43,7 @@ unless `Observability:AccessLog:IncludeInternalListener` is set.
 
 ### Sampling
 
-| Stage | Behaviour |
+| Stage | Behavior |
 |---|---|
 | Head (`GatewaySampler`) | A trusted parent's decision is followed. New traces are sampled at `Tracing:SamplingRatio`. Anything not sampled is still *recorded* locally. |
 | Local tail (`TailSamplingProcessor`) | Unsampled spans are held until the request ends. If it failed (5xx or error status) or took at least `Tracing:SlowThreshold`, the spans are exported; otherwise they are dropped. Memory is bounded by `TailBufferMaxTraces` and `TailBufferMaxSpansPerTrace`. |
@@ -101,19 +101,19 @@ Body logging is off unless a route opts in through its metadata:
 
 ```json
 "Metadata": {
-  "Observability.BodyLogging": "true",
-  "Observability.BodyLogging.MaxBytes": "2048",
-  "Observability.BodyLogging.ContentTypes": "application/json",
-  "Observability.BodyLogging.Request": "false",
-  "Observability.BodyLogging.Response": "true"
+  "BodyLogging.Enabled": "true",
+  "BodyLogging.MaxBytes": "2048",
+  "BodyLogging.ContentTypes": "application/json",
+  "BodyLogging.Request": "false",
+  "BodyLogging.Response": "true"
 }
 ```
 
 - Bodies are teed while streaming: only the first `MaxBytes` (capped by `BodyLogging:HardMaxBytes`) are kept and
   nothing is buffered.
 - JSON values of sensitive properties are masked, and other text is pattern-scrubbed.
-- Events go to category `ApiGateway.Body`.
-- Unknown or invalid `Observability.*` keys reject the proxy configuration, and the running configuration is
+- Events go to category `ApiGateway.BodyLogging`.
+- Unknown or invalid `BodyLogging.*` keys, and the old `Observability.BodyLogging*` keys, reject the proxy configuration, and the running configuration is
   kept.
 
 ### Redaction
@@ -179,14 +179,14 @@ authenticated principal as actor.
 `Observability:Synthetic:Probes` lists URLs **through the public listener**. `SyntheticProbeService` calls each
 one on its interval with an HMAC-signed `X-Synthetic-Check` header (key: `Synthetic:SigningKey`, from the secret
 store).
-- The gateway honours the header only if the signature is valid and fresh, and it always strips the header
+- The gateway honors the header only if the signature is valid and fresh, and it always strips the header
   before forwarding.
 - Results go to `gateway_synthetic_*` metrics and logs, and to `GET /health/synthetic` on the internal listener.
 - That health check is **not** part of readiness.
 
 ## Alerts and dashboards
 
-- `deploy/observability/prometheus/alerts.yml`:
+- `deploy/observability/prometheus/alerts.yaml`:
   - 5xx ratio per route and gateway error codes.
   - Clusters without healthy destinations and flapping destinations.
   - Failing synthetic checks.

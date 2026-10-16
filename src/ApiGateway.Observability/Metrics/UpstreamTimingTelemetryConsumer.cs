@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using ApiGateway.Abstractions.Context;
+using ApiGateway.Abstractions.Features;
 using Microsoft.AspNetCore.Http;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.Telemetry.Consumption;

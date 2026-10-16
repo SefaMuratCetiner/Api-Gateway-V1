@@ -15,7 +15,7 @@ public enum RejectionReason
 /// <summary>
 /// Metrics port for components that reject requests (authentication, rate limiting, load shedding, ...).
 /// They report through this interface instead of owning instruments, so every rejection lands in one
-/// consistently labelled counter.
+/// consistently labeled counter.
 /// </summary>
 public interface IGatewayMetrics
 {

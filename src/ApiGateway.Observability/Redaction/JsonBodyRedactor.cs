@@ -9,7 +9,7 @@ namespace ApiGateway.Observability.Redaction;
 /// properties masked (whole objects/arrays included); the capture may be truncated, so the rewrite stops
 /// cleanly at the cut. Non-JSON text is pattern-scrubbed only.
 /// </summary>
-public sealed class JsonBodyRedactor(SensitiveDataPolicy policy)
+public sealed class JsonBodyRedactor(SensitiveDataClassifier classifier)
 {
     private const string TruncatedMarker = "...(truncated)";
 
@@ -25,7 +25,7 @@ public sealed class JsonBodyRedactor(SensitiveDataPolicy policy)
             return truncated ? json + TruncatedMarker : json;
         }
 
-        var text = policy.Scrub(Encoding.UTF8.GetString(body));
+        var text = classifier.Scrub(Encoding.UTF8.GetString(body));
         return truncated ? text + TruncatedMarker : text;
     }
 
@@ -75,14 +75,14 @@ public sealed class JsonBodyRedactor(SensitiveDataPolicy policy)
             case JsonTokenType.PropertyName:
                 var name = reader.GetString();
                 writer.WritePropertyName(name!);
-                maskNext = policy.IsSensitiveName(name);
+                maskNext = classifier.IsSensitiveName(name);
                 return -1;
             case JsonTokenType.StartObject or JsonTokenType.StartArray when maskNext:
-                writer.WriteStringValue(policy.Mask);
+                writer.WriteStringValue(classifier.Mask);
                 maskNext = false;
                 return reader.CurrentDepth;
             case JsonTokenType.String or JsonTokenType.Number or JsonTokenType.True or JsonTokenType.False or JsonTokenType.Null when maskNext:
-                writer.WriteStringValue(policy.Mask);
+                writer.WriteStringValue(classifier.Mask);
                 maskNext = false;
                 return -1;
             case JsonTokenType.StartObject:
@@ -98,7 +98,7 @@ public sealed class JsonBodyRedactor(SensitiveDataPolicy policy)
                 writer.WriteEndArray();
                 break;
             case JsonTokenType.String:
-                writer.WriteStringValue(policy.Scrub(reader.GetString()!));
+                writer.WriteStringValue(classifier.Scrub(reader.GetString()!));
                 break;
             case JsonTokenType.Number:
                 writer.WriteRawValue(reader.ValueSpan, skipInputValidation: true);

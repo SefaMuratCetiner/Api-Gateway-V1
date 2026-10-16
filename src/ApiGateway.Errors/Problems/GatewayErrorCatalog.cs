@@ -4,12 +4,6 @@ using ApiGateway.Abstractions.Errors;
 
 namespace ApiGateway.Errors.Problems;
 
-/// <summary>Contributes the built-in <see cref="GatewayErrors"/>.</summary>
-public sealed class BuiltInErrorCatalogContributor : IErrorCatalogContributor
-{
-    public IEnumerable<GatewayError> GetErrors() => GatewayErrors.All;
-}
-
 /// <summary>
 /// Every gateway error registered by every contributor. Construction fails on duplicate codes, codes without the
 /// <c>gateway.</c> prefix, malformed codes, or a code reused with a different status.
@@ -50,7 +44,7 @@ public sealed partial class GatewayErrorCatalog : IGatewayErrorCatalog
 
         if (problems.Count > 0)
         {
-            throw new InvalidOperationException("Invalid gateway error catalogue: " + string.Join(" ", problems));
+            throw new InvalidOperationException("Invalid gateway error catalog: " + string.Join(" ", problems));
         }
 
         _errors = errors.ToFrozenDictionary(StringComparer.Ordinal);

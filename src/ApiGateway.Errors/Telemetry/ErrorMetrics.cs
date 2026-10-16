@@ -7,7 +7,7 @@ namespace ApiGateway.Errors.Telemetry;
 
 /// <summary>
 /// <c>gateway.errors</c>: gateway-made error responses by code and status. Both labels are bounded (codes come
-/// from the validated catalogue).
+/// from the validated catalog).
 /// </summary>
 public sealed class ErrorMetrics
 {

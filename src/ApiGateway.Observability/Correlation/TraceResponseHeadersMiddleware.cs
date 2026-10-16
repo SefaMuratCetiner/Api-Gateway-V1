@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using ApiGateway.Abstractions.Context;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;

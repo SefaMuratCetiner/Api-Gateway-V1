@@ -21,8 +21,8 @@ are listed in [errors.md](errors.md).
 Every YARP route is checked when configuration loads (`ProxyConventionsFilter`); a violation rejects the
 configuration (startup fails; a reload keeps the running config):
 
-- `Match.Path` under `Routing:PublicPathPrefix` (`/api`). Health, metrics and the error catalogue live on the
-  internal listener; the error catalogue is also served publicly in Development.
+- `Match.Path` under `Routing:PublicPathPrefix` (`/api`). Health, metrics and the error catalog live on the
+  internal listener; the error catalog is also served publicly in Development.
 - `Match.Methods` listed explicitly; other methods get 405.
 - `Match.Hosts` listed explicitly. Routes without hosts and wildcard hosts (`*`, `*.example.com`) are accepted only
   in Development, where `appsettings.Development.json` sets them to `*`. `Routing:AllowedHosts` follows the same
@@ -37,8 +37,8 @@ otherwise. Splitting a service out needs a more specific route plus a cluster; c
 | API versions | One route per version, by path (`/api/v2/**`) or header (`Match.Headers: Api-Version`) |
 | Version lifecycle | Route metadata `ApiLifecycle.Version`, `ApiLifecycle.Deprecation`, `ApiLifecycle.Sunset` (ISO 8601), `ApiLifecycle.Link` (migration notes, required with Sunset/Retired), `ApiLifecycle.Retired`. Adds `Deprecation: @<unix>` (RFC 9745), `Sunset` (RFC 8594) and `Link: <…>; rel="deprecation"`; from the sunset on (or when retired) answers 410 `gateway.api_version_retired` |
 | Service discovery | `Routing:DnsDiscovery:Enabled` / `RefreshPeriod`: destination host names (Kubernetes services, Consul DNS, plain DNS) resolve to one destination per address. A name that does not resolve is kept as is (logged) instead of rejecting the configuration |
-| Per-tenant destinations | Destination metadata `Tenant` (comma-separated). A tenant with dedicated destinations uses only those; everyone else uses destinations without `Tenant`. The tenant comes from identity (`IGatewayRequestFeature.TenantId`) or the route value named by route metadata `Tenancy.RouteValue` |
-| Canary / weighted split | Cluster `LoadBalancingPolicy: "Weighted"`, destination metadata `Weight` (0..10000, default 1) |
+| Per-tenant destinations | Destination metadata `Tenancy.Tenants` (comma-separated). A tenant with dedicated destinations uses only those; everyone else uses destinations without `Tenancy.Tenants`. The tenant comes from identity (`IGatewayRequestFeature.TenantId`) or the route value named by route metadata `Tenancy.RouteValue` |
+| Canary / weighted split | Cluster `LoadBalancingPolicy: "Weighted"`, destination metadata `LoadBalancing.Weight` (0..10000, default 1) |
 | `Location` / `Set-Cookie` | Mapped back to the public host and path when a route rewrites paths or hosts (destination `Domain` dropped, `Path` mapped) |
 
 ## Normalization
@@ -73,7 +73,7 @@ Synthetic probe URLs (`Observability:Synthetic:Probes`) must use an allowed host
 
 | Limit | Where | Result |
 |---|---|---|
-| URL length, header size/count | `Errors:ProtocolLimits` (Kestrel's own limits stay above) | 414 / 431 |
+| URL length, header size/count | `Limits:Protocol:MaxUrlLength`, `MaxRequestHeadersTotalSize`, `MaxRequestHeaderCount` (Kestrel's own limits stay above) | 414 / 431 |
 | Request body | `Limits:MaxRequestBodySize` (global), YARP route `MaxRequestBodySize` (`-1` = unlimited for uploads/streaming) | 413, by `Content-Length` before the body is read (so `Expect: 100-continue` clients never upload it), or by Kestrel while streaming |
 | Response body | `Limits:MaxResponseBodySize`, route metadata `Limits.MaxResponseBodySize` (`-1` = unlimited) | 502 when declared; connection aborted when a stream passes it |
 | Response headers | `Limits:MaxResponseHeadersSizeKb` | 502 |

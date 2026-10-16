@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
-using ApiGateway.Abstractions.Context;
 using ApiGateway.Abstractions.Errors;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Http;
 using ApiGateway.Abstractions.Telemetry;
 using Microsoft.AspNetCore.Http;
@@ -67,7 +67,7 @@ public sealed partial class AggregateRequestHandler
             var failed = results.Where(static result => result.Error is not null).ToArray();
             if (failed.Length > 0 && (route.FailureMode == PartialFailureMode.FailWhole || failed.Length == results.Length))
             {
-                await _writer.WriteAsync(context, failed[0].Error!, new ProblemWriteOptions
+                await _writer.WriteAsync(context, failed[0].Error!, new ProblemWriteArgs
                 {
                     Extensions = new Dictionary<string, object?>(StringComparer.Ordinal) { ["failedCalls"] = failed.Select(static result => result.Name).ToArray() },
                 });
@@ -223,7 +223,7 @@ public sealed partial class AggregateRequestHandler
 
     /// <summary>Replaces <c>{name}</c> with the escaped route value (segment by segment, so catch-alls keep their slashes).</summary>
     internal static string ExpandPath(string template, RouteValueDictionary values) =>
-        AggregationOptionsValidator.Placeholder().Replace(template, match =>
+        AggregationOptionsConsistencyValidator.Placeholder().Replace(template, match =>
         {
             var value = values.TryGetValue(match.Groups["name"].Value, out var raw) ? raw?.ToString() ?? "" : "";
             return string.Join('/', value.Split('/').Select(Uri.EscapeDataString));

@@ -1,4 +1,3 @@
-using ApiGateway.Observability.Options;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 

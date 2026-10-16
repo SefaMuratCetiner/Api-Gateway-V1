@@ -20,7 +20,7 @@ came from upstream.
 
 | Member | Meaning |
 |---|---|
-| `type` | `Errors:TypeBaseUri` + `code`. A URN by default; set an https base to link to this catalogue. |
+| `type` | `Errors:TypeBaseUri` + `code`. A URN by default; set an https base to link to this catalog. |
 | `title`, `detail` | Localized from `Accept-Language` (`Errors:SupportedCultures`, default `en`). `Content-Language` says which language was used. |
 | `status` | HTTP status, same as the response. |
 | `instance` | Request path, truncated to `Errors:MaxInstanceLength`. |
@@ -46,7 +46,7 @@ Every error response carries `Cache-Control: no-store`, `Vary: Accept-Language`,
 | 405 | `gateway.method_not_allowed` | Route exists for other methods (`Allow` kept) |
 | 410 | `gateway.api_version_retired` | The route's API version is retired (`Link` header and `migration` member point to the migration notes) |
 | 413 | `gateway.payload_too_large` | Body over the limit |
-| 414 | `gateway.uri_too_long` | Request target over `Errors:ProtocolLimits:MaxUrlLength` |
+| 414 | `gateway.uri_too_long` | Request target over `Limits:Protocol:MaxUrlLength` |
 | 429 | `gateway.rate_limited` / `gateway.quota_exceeded` | Rate limit / quota (with `Retry-After`) |
 | 431 | `gateway.headers_too_large` | Headers over the size or count limit |
 | 500 | `gateway.internal_error` | Unhandled exception in the gateway |
@@ -57,7 +57,7 @@ Every error response carries `Cache-Control: no-store`, `Vary: Accept-Language`,
 | 504 | `gateway.upstream_timeout` | Destination did not answer in time |
 | 504 | `gateway.route_timeout` | The route's overall timeout (`TimeoutPolicy` / `Timeout`) fired |
 
-The live catalogue, localized, is served at `GET /internal/errors` on the internal listener.
+The live catalog, localized, is served at `GET /internal/errors` on the internal listener.
 
 ## Where each error comes from
 

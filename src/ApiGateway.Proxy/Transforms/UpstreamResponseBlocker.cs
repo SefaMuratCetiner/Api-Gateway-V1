@@ -1,4 +1,5 @@
 using ApiGateway.Abstractions.Errors;
+using ApiGateway.Abstractions.Features;
 using Yarp.ReverseProxy.Transforms;
 
 namespace ApiGateway.Proxy.Transforms;

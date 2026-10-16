@@ -6,7 +6,7 @@ namespace ApiGateway.Observability.Metrics;
 
 /// <summary>
 /// Decorator around YARP's <see cref="IDestinationHealthUpdater"/>: every active or passive health transition is
-/// counted (<c>gateway.destination.health_changes</c>) and logged. Behaviour is unchanged; the decorated
+/// counted (<c>gateway.destination.health_changes</c>) and logged. Behavior is unchanged; the decorated
 /// updater still applies the change.
 /// </summary>
 public sealed partial class DestinationHealthChangeRecorder(

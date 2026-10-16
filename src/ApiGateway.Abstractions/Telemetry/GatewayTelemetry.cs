@@ -25,7 +25,7 @@ public static class GatewayTelemetry
     public const string UsageLogCategory = Prefix + ".Usage";
 
     /// <summary>Log source context of opt-in body logging.</summary>
-    public const string BodyLogCategory = Prefix + ".Body";
+    public const string BodyLogCategory = Prefix + ".BodyLogging";
 
     /// <summary>Tag / label names. Only bounded values may be used as metric labels.</summary>
     public static class Tags

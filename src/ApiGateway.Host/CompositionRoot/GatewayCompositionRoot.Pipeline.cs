@@ -6,6 +6,7 @@ using ApiGateway.Observability.Serilog.AccessLog;
 using ApiGateway.Observability.Synthetic;
 using ApiGateway.Observability.Tracing;
 using ApiGateway.Proxy.Headers;
+using ApiGateway.Proxy.Limits;
 using ApiGateway.Proxy.Listeners;
 using ApiGateway.Proxy.Normalization;
 using Serilog;

@@ -1,7 +1,8 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using ApiGateway.Errors;
-using ApiGateway.Observability.Options;
+using ApiGateway.Observability;
+using ApiGateway.Observability.Tracing;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
 

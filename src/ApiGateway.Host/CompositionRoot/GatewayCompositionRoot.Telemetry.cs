@@ -1,6 +1,7 @@
 using System.Diagnostics.Metrics;
 using ApiGateway.Abstractions.Telemetry;
-using ApiGateway.Observability.Options;
+using ApiGateway.Observability.Export;
+using ApiGateway.Observability.Metrics;
 using ApiGateway.Observability.Tracing;
 using ApiGateway.Observability.Tracing.Sampling;
 using OpenTelemetry;
@@ -72,8 +73,8 @@ public sealed partial class GatewayCompositionRoot
             var batch = new BatchActivityExportProcessor(exporter, maxQueueSize: export.MaxExportQueueSize, maxExportBatchSize: export.MaxExportBatchSize);
             return new TailSamplingProcessor(
                 batch,
-                new TailSamplingSettings(tracingOptions.SlowThreshold, tracingOptions.TailBufferMaxTraces, tracingOptions.TailBufferMaxSpansPerTrace),
-                services.GetRequiredService<IMeterFactory>());
+                new TailSamplingLimits(tracingOptions.SlowThreshold, tracingOptions.TailBufferMaxTraces, tracingOptions.TailBufferMaxSpansPerTrace),
+                services.GetRequiredService<TailSamplingMetrics>());
         });
     }
 

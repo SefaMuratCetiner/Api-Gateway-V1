@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using ApiGateway.Abstractions.Telemetry;
-using ApiGateway.Observability.Options;
 using Microsoft.Extensions.Options;
 
 namespace ApiGateway.Observability.Metrics;

@@ -1,9 +1,8 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using ApiGateway.Abstractions.Context;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Http;
 using ApiGateway.Abstractions.Telemetry;
-using ApiGateway.Observability.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

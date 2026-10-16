@@ -7,7 +7,7 @@ namespace ApiGateway.Errors.Forwarding;
 
 /// <summary>What to tell the client about a forwarding failure.</summary>
 /// <param name="Error">The gateway error to write, or <c>null</c> when nothing should be written.</param>
-/// <param name="ClientGone">True when the client cancelled; there is nobody to answer.</param>
+/// <param name="ClientGone">True when the client canceled; there is nobody to answer.</param>
 public readonly record struct ForwarderErrorClassification(GatewayError? Error, bool ClientGone)
 {
     public static ForwarderErrorClassification None => new(null, ClientGone: false);

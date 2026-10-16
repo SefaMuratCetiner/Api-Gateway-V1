@@ -46,19 +46,19 @@ public sealed class ScrubbedException : Exception
     public override string ToString() => _toString;
 
     /// <summary>Returns <paramref name="exception"/> itself when its text holds nothing to scrub.</summary>
-    public static Exception CreateIfNeeded(Exception exception, SensitiveDataPolicy policy)
+    public static Exception CreateIfNeeded(Exception exception, SensitiveDataClassifier classifier)
     {
         var text = exception.ToString();
-        var scrubbed = policy.Scrub(text);
+        var scrubbed = classifier.Scrub(text);
         if (string.Equals(text, scrubbed, StringComparison.Ordinal))
         {
             return exception;
         }
 
         return new ScrubbedException(
-            policy.Scrub(exception.Message),
+            classifier.Scrub(exception.Message),
             scrubbed,
-            exception.StackTrace is { } stack ? policy.Scrub(stack) : null,
+            exception.StackTrace is { } stack ? classifier.Scrub(stack) : null,
             exception.GetType().FullName ?? "Exception");
     }
 }

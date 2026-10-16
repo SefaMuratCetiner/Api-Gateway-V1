@@ -11,7 +11,7 @@ public sealed class ErrorsOptions
 
     /// <summary>
     /// Prefix of the problem <c>type</c> member; the error code is appended. A URN by default because codes are
-    /// stable identifiers; set an https base URL to make <c>type</c> link to the published error catalogue.
+    /// stable identifiers; set an https base URL to make <c>type</c> link to the published error catalog.
     /// </summary>
     [Required]
     [MinLength(4)]
@@ -33,36 +33,13 @@ public sealed class ErrorsOptions
     /// <summary>Longest <c>instance</c> (request path) echoed in a problem body; longer paths are cut.</summary>
     [Range(16, 2048)]
     public int MaxInstanceLength { get; set; } = 256;
-
-    [ValidateObjectMembers]
-    public ProtocolLimitsOptions ProtocolLimits { get; set; } = new();
-}
-
-/// <summary>
-/// Soft limits checked in middleware so the client gets a 414/431 problem body. Keep them below Kestrel's hard
-/// limits (<c>MaxRequestLineSize</c>, <c>MaxRequestHeadersTotalSize</c>, <c>MaxRequestHeaderCount</c>):
-/// Kestrel rejects beyond those before any middleware runs, with an empty body.
-/// </summary>
-public sealed class ProtocolLimitsOptions
-{
-    /// <summary>Maximum length of the request target (path + query) in characters.</summary>
-    [Range(256, 65536)]
-    public int MaxUrlLength { get; set; } = 8000;
-
-    /// <summary>Maximum total size of request header names and values in bytes (approximate).</summary>
-    [Range(1024, 1048576)]
-    public int MaxRequestHeadersTotalSize { get; set; } = 30 * 1024;
-
-    /// <summary>Maximum number of request header fields.</summary>
-    [Range(8, 1000)]
-    public int MaxRequestHeaderCount { get; set; } = 90;
 }
 
 [OptionsValidator]
 public sealed partial class ErrorsOptionsValidator : IValidateOptions<ErrorsOptions>;
 
-/// <summary>Checks that need code: cultures must parse and the default must be supported.</summary>
-public sealed class ErrorsOptionsCultureValidator : IValidateOptions<ErrorsOptions>
+/// <summary>Cross-field checks the attribute validator cannot express: cultures must parse and the default must be supported.</summary>
+public sealed class ErrorsOptionsConsistencyValidator : IValidateOptions<ErrorsOptions>
 {
     public ValidateOptionsResult Validate(string? name, ErrorsOptions options)
     {

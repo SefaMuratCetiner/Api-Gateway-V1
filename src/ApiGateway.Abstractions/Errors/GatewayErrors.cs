@@ -37,7 +37,7 @@ public static class GatewayErrors
     public static readonly GatewayError UpstreamTimeout = Create("upstream_timeout", StatusCodes.Status504GatewayTimeout);
     public static readonly GatewayError RouteTimeout = Create("route_timeout", StatusCodes.Status504GatewayTimeout);
 
-    /// <summary>Every built-in gateway error, for the catalogue, documentation and startup validation.</summary>
+    /// <summary>Every built-in gateway error, for the catalog, documentation and startup validation.</summary>
     public static IReadOnlyList<GatewayError> All { get; } =
     [
         BadRequest, RequestValidationFailed, AuthenticationRequired, InvalidToken, Forbidden, RouteNotFound, MethodNotAllowed,

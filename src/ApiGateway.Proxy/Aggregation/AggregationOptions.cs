@@ -17,55 +17,11 @@ public sealed class AggregationOptions
     public Dictionary<string, AggregateRouteOptions> Routes { get; set; } = new(StringComparer.Ordinal);
 }
 
-/// <summary>What a composite endpoint returns when some of its calls fail.</summary>
-public enum PartialFailureMode
-{
-    /// <summary>Any failed call fails the whole request with that call's problem.</summary>
-    FailWhole,
-
-    /// <summary>200 with the successful parts in <c>data</c>, failed ones <c>null</c> and described in <c>errors</c>.</summary>
-    Partial,
-}
-
-public sealed class AggregateRouteOptions
-{
-    /// <summary>Route template under the public prefix, e.g. <c>/api/bff/orders/{id}</c>.</summary>
-    public string Path { get; set; } = "";
-
-    /// <summary>GET and/or HEAD.</summary>
-    public string[] Methods { get; set; } = [];
-
-    public string[] Hosts { get; set; } = [];
-
-    public PartialFailureMode FailureMode { get; set; } = PartialFailureMode.FailWhole;
-
-    /// <summary>The sub-calls, by name (the member name in <c>data</c> / <c>errors</c>).</summary>
-    public Dictionary<string, AggregateCallOptions> Calls { get; set; } = new(StringComparer.Ordinal);
-}
-
-public sealed class AggregateCallOptions
-{
-    /// <summary>YARP cluster the call goes to (its destinations, health and load-balancing policy).</summary>
-    public string ClusterId { get; set; } = "";
-
-    /// <summary>Backend path; <c>{name}</c> is replaced with the route value of that name.</summary>
-    public string Path { get; set; } = "";
-
-    /// <summary>Forward the client's query string.</summary>
-    public bool ForwardQuery { get; set; }
-
-    /// <summary>Timeout of this call alone (the route timeout still bounds the whole request).</summary>
-    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
-
-    /// <summary>Largest response body accepted from this call.</summary>
-    public int MaxResponseBytes { get; set; } = 1024 * 1024;
-}
-
 /// <summary>
 /// Composite endpoints follow the routing conventions (public prefix, explicit methods and hosts) and use only
 /// placeholders their route template defines. Cluster IDs are resolved per request (clusters reload independently).
 /// </summary>
-public sealed partial class AggregationOptionsValidator(string publicPathPrefix, bool allowWildcardHosts) : IValidateOptions<AggregationOptions>
+public sealed partial class AggregationOptionsConsistencyValidator(string publicPathPrefix, bool allowWildcardHosts) : IValidateOptions<AggregationOptions>
 {
     public ValidateOptionsResult Validate(string? name, AggregationOptions options)
     {

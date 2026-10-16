@@ -13,7 +13,7 @@ public interface IProblemResponseWriter
     /// Writes <paramref name="error"/> to the response. Returns <c>false</c> (and writes nothing) when the
     /// response has already started.
     /// </summary>
-    ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteOptions? options = null);
+    ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteArgs? args = null);
 
     /// <summary>
     /// Writes <paramref name="error"/> as a problem object (same members, order and localization as a problem
@@ -24,7 +24,7 @@ public interface IProblemResponseWriter
 }
 
 /// <summary>Per-call additions to a problem response.</summary>
-public sealed class ProblemWriteOptions
+public sealed class ProblemWriteArgs
 {
     /// <summary>Sets <c>Retry-After</c> (whole seconds, rounded up). Used with 429 and 503.</summary>
     public TimeSpan? RetryAfter { get; init; }

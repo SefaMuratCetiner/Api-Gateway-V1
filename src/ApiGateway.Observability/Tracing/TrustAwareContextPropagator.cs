@@ -1,18 +1,9 @@
 using System.Diagnostics;
+using ApiGateway.Abstractions.Features;
 using ApiGateway.Abstractions.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace ApiGateway.Observability.Tracing;
-
-/// <summary>An inbound trace context that was not trusted; kept so the new trace can link to it.</summary>
-public interface IUntrustedTraceContextFeature
-{
-    string TraceParent { get; }
-
-    string? TraceState { get; }
-}
-
-public sealed record UntrustedTraceContextFeature(string TraceParent, string? TraceState) : IUntrustedTraceContextFeature;
 
 /// <summary>
 /// The propagator ASP.NET Core hosting uses to extract the inbound trace context when it creates the request
@@ -27,7 +18,7 @@ public sealed record UntrustedTraceContextFeature(string TraceParent, string? Tr
 /// </remarks>
 public sealed class TrustAwareContextPropagator(
     DistributedContextPropagator inner,
-    TraceTrustPolicy policy,
+    TraceTrustEvaluator trust,
     IHttpContextAccessor accessor) : DistributedContextPropagator
 {
     public override IReadOnlyCollection<string> Fields => inner.Fields;
@@ -37,7 +28,7 @@ public sealed class TrustAwareContextPropagator(
 
     public override void ExtractTraceIdAndState(object? carrier, PropagatorGetterCallback? getter, out string? traceId, out string? traceState)
     {
-        if (policy.IsTrusted(accessor.HttpContext))
+        if (trust.IsTrusted(accessor.HttpContext))
         {
             inner.ExtractTraceIdAndState(carrier, getter, out traceId, out traceState);
             return;
@@ -60,5 +51,5 @@ public sealed class TrustAwareContextPropagator(
     }
 
     public override IEnumerable<KeyValuePair<string, string?>>? ExtractBaggage(object? carrier, PropagatorGetterCallback? getter) =>
-        policy.IsTrusted(accessor.HttpContext) ? inner.ExtractBaggage(carrier, getter) : null;
+        trust.IsTrusted(accessor.HttpContext) ? inner.ExtractBaggage(carrier, getter) : null;
 }

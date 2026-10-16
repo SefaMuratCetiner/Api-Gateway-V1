@@ -1,4 +1,5 @@
 using ApiGateway.Abstractions.Errors;
+using ApiGateway.Abstractions.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.Net.Http.Headers;
