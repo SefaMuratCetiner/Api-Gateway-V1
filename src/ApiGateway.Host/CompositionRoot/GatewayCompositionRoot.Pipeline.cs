@@ -5,7 +5,9 @@ using ApiGateway.Observability.Metrics;
 using ApiGateway.Observability.Serilog.AccessLog;
 using ApiGateway.Observability.Synthetic;
 using ApiGateway.Observability.Tracing;
+using ApiGateway.Proxy.Headers;
 using ApiGateway.Proxy.Listeners;
+using ApiGateway.Proxy.Normalization;
 using Serilog;
 
 namespace ApiGateway.Host.CompositionRoot;
@@ -34,6 +36,10 @@ public sealed partial class GatewayCompositionRoot
             options.IncludeQueryInRequestPath = false;
         });
         app.UseMiddleware<RequestMetricsMiddleware>();
+        if (Compression.Enabled)
+        {
+            app.UseResponseCompression();
+        }
 
         // 3. Errors: empty gateway-made error responses become problem details; exceptions become 4xx/5xx problems.
         app.UseMiddleware<StatusCodeProblemMiddleware>();
@@ -45,9 +51,17 @@ public sealed partial class GatewayCompositionRoot
         });
         app.UseMiddleware<ProtocolLimitsMiddleware>();
 
-        // 4. Routing, listener separation, timeouts, authorization.
+        // 4. Normalization, before routing and authorization: allowed hosts (Host and X-Forwarded-Host, checked
+        //    before client forwarding headers are stripped), client-supplied forwarding/identity headers removed,
+        //    request target checked and the path canonicalized.
+        app.UseMiddleware<HostValidationMiddleware>();
+        app.UseMiddleware<RequestHeaderStrippingMiddleware>();
+        app.UseMiddleware<RequestNormalizationMiddleware>();
+
+        // 5. Routing, listener separation, CORS (preflights answered here, before authentication), timeouts, authorization.
         app.UseRouting();
         app.UseMiddleware<InternalListenerGuardMiddleware>();
+        app.UseCors();
         app.UseRequestTimeouts();
         app.UseAuthentication();
         app.UseAuthorization();

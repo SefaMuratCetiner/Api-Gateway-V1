@@ -1,7 +1,14 @@
 using ApiGateway.Errors;
 using ApiGateway.Observability.Options;
 using ApiGateway.Observability.Serilog;
+using ApiGateway.Proxy.Aggregation;
+using ApiGateway.Proxy.Compression;
+using ApiGateway.Proxy.Cors;
+using ApiGateway.Proxy.Headers;
+using ApiGateway.Proxy.Limits;
 using ApiGateway.Proxy.Listeners;
+using ApiGateway.Proxy.Routing;
+using ApiGateway.Proxy.Validation;
 using Microsoft.Extensions.Options;
 
 namespace ApiGateway.Host.CompositionRoot;
@@ -14,6 +21,13 @@ public sealed partial class GatewayCompositionRoot
         AddOptions<ErrorsOptions>(ErrorsOptions.SectionName, new ErrorsOptionsValidator(), new ErrorsOptionsCultureValidator());
         AddOptions<ObservabilityOptions>(ObservabilityOptions.SectionName, new ObservabilityOptionsValidator(), new ObservabilityOptionsConsistencyValidator());
         AddOptions<LoggingOptions>(LoggingOptions.SectionName, new LoggingOptionsValidator());
+        AddOptions<RoutingOptions>(RoutingOptions.SectionName, new RoutingOptionsValidator(), new RoutingOptionsConsistencyValidator(AllowWildcardHosts));
+        AddOptions<HeaderOptions>(HeaderOptions.SectionName);
+        AddOptions<RequestLimitsOptions>(RequestLimitsOptions.SectionName, new RequestLimitsOptionsValidator());
+        AddOptions<GatewayCorsOptions>(GatewayCorsOptions.SectionName, new GatewayCorsOptionsValidator());
+        AddOptions<CompressionOptions>(CompressionOptions.SectionName);
+        AddOptions<ContractValidationOptions>(ContractValidationOptions.SectionName, new ContractValidationOptionsValidator());
+        AddOptions<AggregationOptions>(AggregationOptions.SectionName, new AggregationOptionsValidator(Routing.PublicPathPrefix, AllowWildcardHosts));
     }
 
     /// <summary>

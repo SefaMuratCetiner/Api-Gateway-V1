@@ -71,6 +71,9 @@ public sealed class ProblemResponseWriter(
         return true;
     }
 
+    public void WriteEmbedded(Utf8JsonWriter writer, HttpContext context, GatewayError error) =>
+        Build(context, error, languages.Resolve(context)).WriteTo(writer);
+
     /// <summary>Builds the document without writing it (also used by tests and the catalogue endpoint).</summary>
     public ProblemDocument Build(HttpContext context, GatewayError error, CultureInfo culture, ProblemWriteOptions? options = null)
     {

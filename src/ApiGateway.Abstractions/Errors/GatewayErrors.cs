@@ -13,11 +13,13 @@ public static class GatewayErrors
 
     // 4xx
     public static readonly GatewayError BadRequest = Create("bad_request", StatusCodes.Status400BadRequest);
+    public static readonly GatewayError RequestValidationFailed = Create("request_validation_failed", StatusCodes.Status400BadRequest);
     public static readonly GatewayError AuthenticationRequired = Create("authentication_required", StatusCodes.Status401Unauthorized);
     public static readonly GatewayError InvalidToken = Create("invalid_token", StatusCodes.Status401Unauthorized);
     public static readonly GatewayError Forbidden = Create("forbidden", StatusCodes.Status403Forbidden);
     public static readonly GatewayError RouteNotFound = Create("route_not_found", StatusCodes.Status404NotFound);
     public static readonly GatewayError MethodNotAllowed = Create("method_not_allowed", StatusCodes.Status405MethodNotAllowed);
+    public static readonly GatewayError ApiVersionRetired = Create("api_version_retired", StatusCodes.Status410Gone);
     public static readonly GatewayError PayloadTooLarge = Create("payload_too_large", StatusCodes.Status413PayloadTooLarge);
     public static readonly GatewayError UriTooLong = Create("uri_too_long", StatusCodes.Status414UriTooLong);
     public static readonly GatewayError HeadersTooLarge = Create("headers_too_large", StatusCodes.Status431RequestHeaderFieldsTooLarge);
@@ -38,8 +40,8 @@ public static class GatewayErrors
     /// <summary>Every built-in gateway error, for the catalogue, documentation and startup validation.</summary>
     public static IReadOnlyList<GatewayError> All { get; } =
     [
-        BadRequest, AuthenticationRequired, InvalidToken, Forbidden, RouteNotFound, MethodNotAllowed, PayloadTooLarge, UriTooLong,
-        HeadersTooLarge, RateLimited, QuotaExceeded,
+        BadRequest, RequestValidationFailed, AuthenticationRequired, InvalidToken, Forbidden, RouteNotFound, MethodNotAllowed,
+        ApiVersionRetired, PayloadTooLarge, UriTooLong, HeadersTooLarge, RateLimited, QuotaExceeded,
         InternalError, BadUpstreamResponse, UpstreamUnreachable, NoHealthyDestination, Overloaded, Maintenance,
         RouteDisabled, UpstreamTimeout, RouteTimeout,
     ];

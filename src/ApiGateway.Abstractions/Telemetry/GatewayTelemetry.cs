@@ -33,6 +33,7 @@ public static class GatewayTelemetry
         public const string RouteId = "gateway.route_id";
         public const string ClusterId = "gateway.cluster_id";
         public const string DestinationId = "gateway.destination_id";
+        public const string ApiVersion = "gateway.api_version";
         public const string ClientId = "gateway.client_id";
         public const string ClientType = "gateway.client_type";
         public const string TenantId = "gateway.tenant_id";

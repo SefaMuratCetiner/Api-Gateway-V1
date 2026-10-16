@@ -1,7 +1,11 @@
 using ApiGateway.Errors;
 using ApiGateway.Observability.Options;
 using ApiGateway.Observability.Serilog;
+using ApiGateway.Proxy.Aggregation;
+using ApiGateway.Proxy.Compression;
+using ApiGateway.Proxy.Limits;
 using ApiGateway.Proxy.Listeners;
+using ApiGateway.Proxy.Routing;
 
 namespace ApiGateway.Host.CompositionRoot;
 
@@ -16,7 +20,8 @@ namespace ApiGateway.Host.CompositionRoot;
 /// <item><c>.Telemetry</c>: OpenTelemetry tracing and metrics.</item>
 /// <item><c>.Observability</c>: correlation, metrics, redaction, audit, usage, synthetic checks.</item>
 /// <item><c>.Errors</c>: problem details and error mapping.</item>
-/// <item><c>.Proxy</c>: YARP and its extension points.</item>
+/// <item><c>.Proxy</c>: YARP and its extension points (routing conventions, rewriting, limits, per-route policies), Kestrel.</item>
+/// <item><c>.RequestHandling</c>: CORS, compression, contract validation, request aggregation.</item>
 /// <item><c>.Pipeline</c>: the middleware order.</item>
 /// <item><c>.Endpoints</c>: public and internal endpoints.</item>
 /// </list>
@@ -35,6 +40,10 @@ public sealed partial class GatewayCompositionRoot
         Errors = BindEagerly(ErrorsOptions.SectionName, new ErrorsOptions(), new ErrorsOptionsValidator(), new ErrorsOptionsCultureValidator());
         Observability = BindEagerly(ObservabilityOptions.SectionName, new ObservabilityOptions(), new ObservabilityOptionsValidator(), new ObservabilityOptionsConsistencyValidator());
         Logging = BindEagerly(LoggingOptions.SectionName, new LoggingOptions(), new LoggingOptionsValidator());
+        Routing = BindEagerly(RoutingOptions.SectionName, new RoutingOptions(), new RoutingOptionsValidator(), new RoutingOptionsConsistencyValidator(AllowWildcardHosts));
+        Limits = BindEagerly(RequestLimitsOptions.SectionName, new RequestLimitsOptions(), new RequestLimitsOptionsValidator());
+        Compression = BindEagerly(CompressionOptions.SectionName, new CompressionOptions());
+        Aggregation = BindEagerly(AggregationOptions.SectionName, new AggregationOptions(), new AggregationOptionsValidator(Routing.PublicPathPrefix, AllowWildcardHosts));
     }
 
     private IServiceCollection Services => _builder.Services;
@@ -51,6 +60,17 @@ public sealed partial class GatewayCompositionRoot
 
     private LoggingOptions Logging { get; }
 
+    private RoutingOptions Routing { get; }
+
+    private RequestLimitsOptions Limits { get; }
+
+    private CompressionOptions Compression { get; }
+
+    private AggregationOptions Aggregation { get; }
+
+    /// <summary>Routes without hosts, wildcard hosts and <c>*</c> in <c>Routing:AllowedHosts</c>: Development only.</summary>
+    private bool AllowWildcardHosts => Environment.IsDevelopment();
+
     /// <summary>Registers every service. Order inside follows dependencies: options, logging, libraries, hosting.</summary>
     public void ComposeServices()
     {
@@ -61,5 +81,6 @@ public sealed partial class GatewayCompositionRoot
         ComposeTelemetry();
         ComposeErrors();
         ComposeProxy();
+        ComposeRequestHandling();
     }
 }

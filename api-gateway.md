@@ -3,39 +3,39 @@
 **Purpose:** Single managed entry point for APIs. Handles cross-cutting concerns (auth, rate limiting, transformation, versioning) so backend services don't have to. Operates at L7, API-aware.
 
 ## Routing
-- [ ] Routing by path, host, method, header, query
-- [ ] Explicit hosts per route; wildcard hosts in Development only
-- [ ] Explicit allowed methods per route (others 405)
-- [ ] Path rewriting and prefix stripping per route; paths forwarded unchanged by default, so `Location`, ETags and logs match both sides
-- [ ] `Location` and `Set-Cookie` path/domain rewritten when a route rewrites paths or hosts
-- [ ] API versioning (path/header based)
-- [ ] `Deprecation` and `Sunset` headers per route/version
-- [ ] Retired API versions return 410 with a link to migration notes
-- [ ] Public listener routes only the public prefix (e.g. `/api/**`); health, metrics and docs on the internal listener; docs on the public listener in Development only
+- [x] Routing by path, host, method, header, query
+- [x] Explicit hosts per route; wildcard hosts in Development only
+- [x] Explicit allowed methods per route (others 405)
+- [x] Path rewriting and prefix stripping per route; paths forwarded unchanged by default, so `Location`, ETags and logs match both sides
+- [x] `Location` and `Set-Cookie` path/domain rewritten when a route rewrites paths or hosts
+- [x] API versioning (path/header based)
+- [x] `Deprecation` and `Sunset` headers per route/version
+- [x] Retired API versions return 410 with a link to migration notes
+- [x] Public listener routes only the public prefix (e.g. `/api/**`); health, metrics and docs on the internal listener; docs on the public listener in Development only
 - [ ] Destinations via service discovery (Kubernetes, Consul, DNS); same config locally and deployed
-- [ ] Per-tenant routing (tenant-specific destinations)
-- [ ] Splitting a service out needs only a route + cluster entry; clients see no change
-- [ ] Canary / weighted traffic splitting
+- [x] Per-tenant routing (tenant-specific destinations)
+- [x] Splitting a service out needs only a route + cluster entry; clients see no change
+- [x] Canary / weighted traffic splitting
 
 ## Request Normalization
-- [ ] Path canonicalized before routing and auth: `../`, `./`, duplicate slashes, trailing slashes, case rules
-- [ ] Double/overlong percent-encoding rejected
-- [ ] Null bytes and control characters rejected
-- [ ] `Host` checked against the allowed-hosts list; `X-Forwarded-Host` validated the same way
-- [ ] Open-redirect protection in redirects and rewrites
+- [x] Path canonicalized before routing and auth: `../`, `./`, duplicate slashes, trailing slashes, case rules
+- [x] Double/overlong percent-encoding rejected
+- [x] Null bytes and control characters rejected
+- [x] `Host` checked against the allowed-hosts list; `X-Forwarded-Host` validated the same way
+- [x] Open-redirect protection in redirects and rewrites
 
 ## Request & Response Handling
 - [ ] Request/response transformation (headers, body, format) per route
-- [ ] Request aggregation / composition (BFF endpoints):
+- [x] Request aggregation / composition (BFF endpoints):
   - timeout per sub-call
   - partial-failure handling (fail whole request or return partial result per route)
   - errors in the same problem-details shape
 - [ ] Protocol translation (REST ↔ gRPC, HTTP ↔ WebSocket)
-- [ ] Request validation against schema (OpenAPI/JSON Schema), reloaded when the backend's published contract changes
-- [ ] Response compression (Brotli/gzip); disabled per route where responses mix secrets with attacker-controlled input (BREACH)
-- [ ] CORS: named policy, explicit origins from config, no `*` with credentials, wildcard-subdomain matching, preflight `max-age`; preflight answered at the gateway
-- [ ] Maximum upstream response size and response header size
-- [ ] `Idempotency-Key` forwarded intact
+- [x] Request validation against schema (OpenAPI/JSON Schema), reloaded when the backend's published contract changes
+- [x] Response compression (Brotli/gzip); disabled per route where responses mix secrets with attacker-controlled input (BREACH)
+- [x] CORS: named policy, explicit origins from config, no `*` with credentials, wildcard-subdomain matching, preflight `max-age`; preflight answered at the gateway
+- [x] Maximum upstream response size and response header size
+- [x] `Idempotency-Key` forwarded intact
 
 ## Response Caching
 - [ ] GET/HEAD only, per route
@@ -48,14 +48,14 @@
 - [ ] Authenticated purge endpoint on the internal listener
 
 ## Headers & Correlation
-- [ ] Strip client-supplied `X-Forwarded-*`, `X-Tenant-Id`, `X-User-Id`, `X-Internal-*` before forwarding
-- [ ] Set `X-Forwarded-For/Proto/Host/Prefix` itself, replacing client values
-- [ ] Generate `X-Correlation-Id` if missing; accept inbound only if short and well-formed, else replace
-- [ ] Trace starts at the gateway; inbound `traceparent` trusted per environment (untrusted → new trace, inbound kept as link)
-- [ ] `X-Trace-Id`, `traceresponse`, `X-Correlation-Id` on every response, including gateway-made errors
+- [x] Strip client-supplied `X-Forwarded-*`, `X-Tenant-Id`, `X-User-Id`, `X-Internal-*` before forwarding
+- [x] Set `X-Forwarded-For/Proto/Host/Prefix` itself, replacing client values
+- [x] Generate `X-Correlation-Id` if missing; accept inbound only if short and well-formed, else replace
+- [x] Trace starts at the gateway; inbound `traceparent` trusted per environment (untrusted → new trace, inbound kept as link)
+- [x] `X-Trace-Id`, `traceresponse`, `X-Correlation-Id` on every response, including gateway-made errors
 - [ ] Rate-limit headers from both gateway and backend passed to the client
-- [ ] Hop-by-hop headers handled by the proxy library, not custom code
-- [ ] `Server`, `X-Powered-By` and other stack-revealing headers removed
+- [x] Hop-by-hop headers handled by the proxy library, not custom code
+- [x] `Server`, `X-Powered-By` and other stack-revealing headers removed
 
 ## Authentication & Authorization
 - [ ] API keys: hashed, scoped, expiring, rotatable; checked before forwarding
@@ -114,11 +114,11 @@
 - [ ] Telemetry/log sink down: bounded buffer, oldest dropped, requests never blocked
 
 ## Request Limits
-- [ ] Server limits: header size/count, connections, HTTP/2 streams, minimum request data rate (slow clients)
-- [ ] Global body size cap with per-route overrides (uploads, streaming)
-- [ ] URL length limit (414), header limit (431), body limit (413)
-- [ ] Streaming multipart uploads; range requests (206) passed through for downloads
-- [ ] `Expect: 100-continue` handled; body rejected before upload when limits fail
+- [x] Server limits: header size/count, connections, HTTP/2 streams, minimum request data rate (slow clients)
+- [x] Global body size cap with per-route overrides (uploads, streaming)
+- [x] URL length limit (414), header limit (431), body limit (413)
+- [x] Streaming multipart uploads; range requests (206) passed through for downloads
+- [x] `Expect: 100-continue` handled; body rejected before upload when limits fail
 
 ## Security
 - [ ] TLS termination, TLS 1.2+, defined minimum version and cipher policy

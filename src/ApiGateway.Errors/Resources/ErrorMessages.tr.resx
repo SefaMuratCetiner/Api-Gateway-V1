@@ -132,4 +132,16 @@
   <data name="RouteTimeout_Detail" xml:space="preserve">
     <value>İstek bu rotanın zaman sınırını aştı.</value>
   </data>
+  <data name="RequestValidationFailed_Title" xml:space="preserve">
+    <value>İstek API sözleşmesine uymuyor.</value>
+  </data>
+  <data name="RequestValidationFailed_Detail" xml:space="preserve">
+    <value>İstek gövdesi yayımlanan şemaya göre doğrulanamadı. Ayrıntılar için errors alanına bakın.</value>
+  </data>
+  <data name="ApiVersionRetired_Title" xml:space="preserve">
+    <value>Bu API sürümü kullanımdan kaldırıldı.</value>
+  </data>
+  <data name="ApiVersionRetired_Detail" xml:space="preserve">
+    <value>İstenen API sürümü artık kullanılamıyor. Desteklenen bir sürüme geçmek için geçiş notlarını izleyin.</value>
+  </data>
 </root>

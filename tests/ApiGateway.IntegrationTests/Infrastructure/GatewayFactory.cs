@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog.Core;
 using Serilog.Events;
+using ApiGateway.Proxy.Validation;
 using Yarp.ReverseProxy.Forwarder;
 
 namespace ApiGateway.IntegrationTests.Infrastructure;
@@ -15,7 +17,7 @@ namespace ApiGateway.IntegrationTests.Infrastructure;
 /// so tests decide what "the backend" answers; Serilog events are captured by <see cref="CapturingSink"/>
 /// (behind the same redaction wrapper as every real sink).
 /// </summary>
-public sealed class GatewayFactory : WebApplicationFactory<Program>
+public class GatewayFactory : WebApplicationFactory<Program>
 {
     public const int PublicPort = 80;
     public const int InternalPort = 5081;
@@ -24,7 +26,7 @@ public sealed class GatewayFactory : WebApplicationFactory<Program>
 
     public CapturingSink Logs { get; } = new();
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    protected sealed override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
 
@@ -41,25 +43,78 @@ public sealed class GatewayFactory : WebApplicationFactory<Program>
         builder.UseSetting("Observability:Logging:Usage:Enabled", "false");
         builder.UseSetting("Observability:Usage:Enabled", "false");
 
+        // Explicit hosts and methods (outside Development every route needs them), no DNS in tests.
+        builder.UseSetting("Routing:AllowedHosts:0", "localhost");
+        builder.UseSetting("Routing:ExternalRedirectHosts:0", "login.example.net");
+        builder.UseSetting("Routing:DnsDiscovery:Enabled", "false");
+        builder.UseSetting("ReverseProxy:Routes:orders:Match:Hosts:0", "localhost");
+        builder.UseSetting("ReverseProxy:Routes:catalog-read:Match:Hosts:0", "localhost");
+
         // A route whose cluster has no destinations (→ 503) and a short route timeout (→ 504).
-        builder.UseSetting("ReverseProxy:Routes:empty:ClusterId", "empty");
-        builder.UseSetting("ReverseProxy:Routes:empty:Match:Path", "/api/empty/{**rest}");
+        AddRoute(builder, "empty", "empty", "/api/empty/{**rest}", "GET");
         builder.UseSetting("ReverseProxy:Clusters:empty:LoadBalancingPolicy", "RoundRobin");
         builder.UseSetting("ReverseProxy:Routes:catalog-read:Timeout", "00:00:00.300");
+
+        foreach (var (key, value) in TestRoutes.Settings)
+        {
+            builder.UseSetting(key, value);
+        }
+
+        ConfigureSettings(builder);
 
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<IForwarderHttpClientFactory>();
             services.AddSingleton<IForwarderHttpClientFactory>(new FakeUpstreamClientFactory(Upstream));
             services.AddSingleton<ILogEventSink>(Logs);
+            services.AddSingleton<IStartupFilter, LocalPortFromHostStartupFilter>();
+            services.AddHttpClient(ContractRefreshService.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Contracts);
         });
     }
 
+    /// <summary>Lets a derived factory change settings after the defaults above.</summary>
+    protected virtual void ConfigureSettings(IWebHostBuilder builder)
+    {
+    }
+
+    /// <summary>Serves the backends' published contracts.</summary>
+    public FakeUpstream Contracts { get; } = new();
+
+    internal static void AddRoute(IWebHostBuilder builder, string routeId, string clusterId, string path, params string[] methods)
+    {
+        builder.UseSetting($"ReverseProxy:Routes:{routeId}:ClusterId", clusterId);
+        builder.UseSetting($"ReverseProxy:Routes:{routeId}:Match:Path", path);
+        builder.UseSetting($"ReverseProxy:Routes:{routeId}:Match:Hosts:0", "localhost");
+        for (var i = 0; i < methods.Length; i++)
+        {
+            builder.UseSetting($"ReverseProxy:Routes:{routeId}:Match:Methods:{i}", methods[i]);
+        }
+    }
+
     public HttpClient CreatePublicClient() =>
-        CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri($"http://localhost:{PublicPort}"), AllowAutoRedirect = false });
+        CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri($"http://localhost:{PublicPort}"), AllowAutoRedirect = false, HandleCookies = false });
 
     public HttpClient CreateInternalClient() =>
-        CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri($"http://localhost:{InternalPort}"), AllowAutoRedirect = false });
+        CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri($"http://localhost:{InternalPort}"), AllowAutoRedirect = false, HandleCookies = false });
+}
+
+/// <summary>
+/// The in-memory server has no sockets, so <c>Connection.LocalPort</c> is 0 and there is no remote address. Kestrel
+/// sets both; this filter sets the port from the request and a loopback client, so listener separation and
+/// <c>X-Forwarded-For</c> behave as deployed.
+/// </summary>
+internal sealed class LocalPortFromHostStartupFilter : IStartupFilter
+{
+    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
+    {
+        app.Use((context, nextMiddleware) =>
+        {
+            context.Connection.LocalPort = context.Request.Host.Port ?? 80;
+            context.Connection.RemoteIpAddress ??= System.Net.IPAddress.Loopback;
+            return nextMiddleware(context);
+        });
+        next(app);
+    };
 }
 
 /// <summary>The backend, as a programmable message handler.</summary>

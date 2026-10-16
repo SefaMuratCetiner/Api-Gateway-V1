@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 
 namespace ApiGateway.Abstractions.Errors;
@@ -13,6 +14,13 @@ public interface IProblemResponseWriter
     /// response has already started.
     /// </summary>
     ValueTask<bool> WriteAsync(HttpContext context, GatewayError error, ProblemWriteOptions? options = null);
+
+    /// <summary>
+    /// Writes <paramref name="error"/> as a problem object (same members, order and localization as a problem
+    /// response) into a larger JSON document, e.g. the <c>errors</c> of a partial aggregated response. The HTTP
+    /// response is not touched and no error metric is recorded.
+    /// </summary>
+    void WriteEmbedded(Utf8JsonWriter writer, HttpContext context, GatewayError error);
 }
 
 /// <summary>Per-call additions to a problem response.</summary>

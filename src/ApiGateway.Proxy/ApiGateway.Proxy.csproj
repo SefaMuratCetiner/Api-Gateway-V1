@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    YARP-specific building blocks: typed per-route policies read from route metadata, route-metadata
-    validation, route context and the upstream-response marker. No DI registration code: the Host's
-    composition root wires these types.
+    YARP-specific building blocks and the request path through the gateway: routing conventions, request
+    normalization (host validation, path canonicalization), header hygiene, API lifecycle, tenant routing,
+    weighted load balancing, path/Location/Set-Cookie rewriting, CORS, compression, request/response limits,
+    contract validation and request aggregation; typed per-route policies read from route metadata and their
+    validation. No DI registration code: the Host's composition root wires these types.
   -->
   <PropertyGroup>
     <RootNamespace>ApiGateway.Proxy</RootNamespace>
@@ -11,9 +13,14 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Yarp.ReverseProxy" />
+    <PackageReference Include="NSwag.Core" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ApiGateway.Abstractions\ApiGateway.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ApiGateway.UnitTests" />
   </ItemGroup>
 </Project>

@@ -14,6 +14,12 @@
     <PackageVersion Include="Yarp.Telemetry.Consumption" Version="2.3.0" />
   </ItemGroup>
 
+  <ItemGroup Label="Contracts">
+    <!-- OpenAPI / JSON Schema request validation (MIT; brings NJsonSchema and Newtonsoft.Json, both MIT).
+         JsonSchema.Net 8+ is not used: it moved to a fee-based licence. -->
+    <PackageVersion Include="NSwag.Core" Version="14.7.1" />
+  </ItemGroup>
+
   <ItemGroup Label="OpenTelemetry">
     <PackageVersion Include="OpenTelemetry" Version="1.19.1" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />

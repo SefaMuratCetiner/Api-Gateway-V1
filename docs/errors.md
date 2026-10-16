@@ -37,18 +37,20 @@ Every error response carries `Cache-Control: no-store`, `Vary: Accept-Language`,
 
 | Status | Code | When |
 |---|---|---|
-| 400 | `gateway.bad_request` | Malformed request (Kestrel), client body failed while forwarding |
+| 400 | `gateway.bad_request` | Malformed request (Kestrel), client body failed while forwarding, host not allowed, rejected request target (double/overlong encoding, control characters, encoded slashes) |
+| 400 | `gateway.request_validation_failed` | Request body violates the backend's published contract (`errors` lists the failed JSON paths) |
 | 401 | `gateway.authentication_required` | Route requires authentication, no credentials sent |
 | 401 | `gateway.invalid_token` | Credentials sent but invalid or expired (`WWW-Authenticate` kept) |
 | 403 | `gateway.forbidden` | Route authorization failed |
 | 404 | `gateway.route_not_found` | No route matches (`instance` shows the path) |
 | 405 | `gateway.method_not_allowed` | Route exists for other methods (`Allow` kept) |
+| 410 | `gateway.api_version_retired` | The route's API version is retired (`Link` header and `migration` member point to the migration notes) |
 | 413 | `gateway.payload_too_large` | Body over the limit |
 | 414 | `gateway.uri_too_long` | Request target over `Errors:ProtocolLimits:MaxUrlLength` |
 | 429 | `gateway.rate_limited` / `gateway.quota_exceeded` | Rate limit / quota (with `Retry-After`) |
 | 431 | `gateway.headers_too_large` | Headers over the size or count limit |
 | 500 | `gateway.internal_error` | Unhandled exception in the gateway |
-| 502 | `gateway.bad_upstream_response` | Upstream answered with something invalid, or the connection broke mid-request |
+| 502 | `gateway.bad_upstream_response` | Upstream answered with something invalid (unsafe redirect, response over the size or header limit), or the connection broke mid-request |
 | 502 | `gateway.upstream_unreachable` | Connection refused, DNS failure or TLS failure to the destination |
 | 503 | `gateway.no_healthy_destination` | Cluster has no healthy destination (`Retry-After` = `Errors:NoHealthyDestinationRetryAfter`) |
 | 503 | `gateway.overloaded` / `gateway.maintenance` / `gateway.route_disabled` | Load shedding / maintenance mode / kill switch |
@@ -68,6 +70,11 @@ The live catalogue, localized, is served at `GET /internal/errors` on the intern
 | `ProblemAuthorizationResultHandler` | 401/403 |
 | `RateLimitRejectionProblemWriter` | 429 (hook for the rate limiter) |
 | `RouteTimeoutProblemWriter` | 504 for the `gateway-default` request-timeout policy |
+| `HostValidationMiddleware`, `RequestNormalizationMiddleware` | 400 before routing (see [request-path.md](request-path.md)) |
+| `ApiLifecycleMiddleware` | 410 for retired API versions |
+| `RequestBodyLimitMiddleware`, `RequestValidationMiddleware` | 413 by `Content-Length` before upload; 400 contract violations |
+| `PathRewriteTransformProvider`, `ResponseLimitsTransformProvider` | 502 for unsafe backend redirects and oversized backend responses |
+| `AggregateRequestHandler` | The failed call's 502/503/504 for composite endpoints that fail whole; embedded problems in partial results |
 
 ## Adding codes
 
